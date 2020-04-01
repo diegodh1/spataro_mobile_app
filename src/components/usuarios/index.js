@@ -45,16 +45,15 @@ class Usuario extends Component {
           <Icon
             name="bars"
             size={40}
-            color="white"
+            color="#ff8c00"
             onPress={() => this.props.navigation.openDrawer()}
           />
           <Appbar.Content title="Usuarios" subtitle="crear y editar usuarios" />
           <Icon name="infocirlceo" size={23} color="white" />
         </Appbar.Header>
-        <Text style={styles.text}>Hola Usuario</Text>
         <BottomNavigation
           barStyle={styles.bottom}
-          activeColor='#F2994A'
+          activeColor='#ff8c00'
           inactiveColor='#CDCDCD'
           shifting={true}
           sceneAnimationEnabled ={true}
@@ -87,10 +86,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   header: {
-    backgroundColor: '#434343',
+    backgroundColor: '#000000',
   },
   bottom: {
-    backgroundColor: '#434343',
+    backgroundColor: '#000000',
   },
   activo:{
     color: '#F2994A',

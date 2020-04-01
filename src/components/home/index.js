@@ -49,11 +49,11 @@ function MyDrawer() {
     <Drawer.Navigator
       drawerContent={props => <CustomDrawerContent {...props} />}
       drawerStyle={{
-        backgroundColor: '#434343',
+        backgroundColor: '#252424',
         width: 260,
       }}
       drawerContentOptions={{
-        activeTintColor: '#F2994A',
+        activeTintColor: '#ff8c00',
         inactiveTintColor: '#CDCDCD',
       }}>
       <Drawer.Screen

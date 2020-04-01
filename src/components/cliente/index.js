@@ -18,7 +18,7 @@ class Cliente extends Component {
     this.bounce = this.bounce.bind(this);
   }
   bounce(){
-    this.refs.view.bounce();
+    this.refs.view.rubberBand();
     setTimeout(() => {
       this.props.navigation.navigate('Usuario');
     }, 500);
@@ -29,11 +29,11 @@ class Cliente extends Component {
     return (
       <Fragment>
         <Appbar.Header  style={styles.header}>
-          <Icon name="bars" size={40} color="white" onPress={() => this.props.navigation.openDrawer()} />
+          <Icon name="bars" size={40} color="#ff8c00" onPress={() => this.props.navigation.openDrawer()} />
           <Appbar.Content title="Clientes" subtitle="crear y editar clientes" />
           <TouchableWithoutFeedback onPress={this.bounce}>
           <Animatable.View ref="view">
-          <Icon name="left" size={30} color="white" />
+          <Icon name="left" size={30} color="#ff8c00" />
           </Animatable.View>
           </TouchableWithoutFeedback>
         </Appbar.Header>
@@ -63,6 +63,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   header:{
-    backgroundColor: '#434343'
+    backgroundColor: '#000000'
   }
 });
