@@ -11,10 +11,10 @@ import {
   ScrollView,
 } from 'react-native';
 import {Input} from 'react-native-elements';
-import Icon from 'react-native-vector-icons/AntDesign';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import * as Animatable from 'react-native-animatable';
-import {TextInput, List, Button} from 'react-native-paper';
+import {TextInput, List, Button, HelperText} from 'react-native-paper';
 import ImagePicker from 'react-native-image-picker';
 
 class Crear_usuario extends Component {
@@ -29,6 +29,11 @@ class Crear_usuario extends Component {
       menus: [],
       checked: false,
       visible_menu: false,
+      show_error_doc: false,
+      show_error_pass: false,
+      show_error_name: false,
+      show_error_last: false,
+      show_error_email: false,
       filePath: '',
     };
     this._menu_change = this._menu_change.bind(this);
@@ -100,6 +105,22 @@ class Crear_usuario extends Component {
     this.setState({menus: menu_aux});
   };
 
+  comprobar_form = () => {
+    if (!Number(this.state.id_usuario)) this.setState({show_error_doc: true});
+    if (this.state.passwrd.length < 6) this.setState({show_error_pass: true});
+    if (this.state.name.length < 1) this.setState({show_error_name: true});
+    if (this.state.last_name.length < 1) this.setState({show_error_last: true});
+    if (!this.state.email.includes('@'))
+      this.setState({show_error_email: true});
+    if (Number(this.state.id_usuario)) this.setState({show_error_doc: false});
+    if (this.state.passwrd.length > 6) this.setState({show_error_pass: false});
+    if (this.state.name.length > 1) this.setState({show_error_name: false});
+    if (this.state.last_name.length > 1)
+      this.setState({show_error_last: false});
+    if (this.state.email.includes('@'))
+      this.setState({show_error_email: false});
+  };
+
   render() {
     const {usuario} = this.props;
     return (
@@ -113,6 +134,11 @@ class Crear_usuario extends Component {
             value={this.state.id_usuario}
             onChangeText={text => this.setState({id_usuario: text})}
           />
+          {this.state.show_error_doc ? (
+            <HelperText type="error" visible={this.state.show_error_doc}>
+              El numero de documento solo contiene numeros
+            </HelperText>
+          ) : null}
           <TextInput
             mode="outlined"
             label="Contraseña"
@@ -121,6 +147,11 @@ class Crear_usuario extends Component {
             value={this.state.passwrd}
             onChangeText={text => this.setState({passwrd: text})}
           />
+          {this.state.show_error_pass ? (
+            <HelperText type="error" visible={this.state.show_error_pass}>
+              La contraseña debe ser mayor a 6 caracteres
+            </HelperText>
+          ) : null}
           <TextInput
             mode="outlined"
             label="Nombre"
@@ -129,6 +160,11 @@ class Crear_usuario extends Component {
             value={this.state.name}
             onChangeText={text => this.setState({name: text})}
           />
+          {this.state.show_error_name ? (
+            <HelperText type="error" visible={this.state.show_error_name}>
+              El nombre no puede ser vacio
+            </HelperText>
+          ) : null}
           <TextInput
             mode="outlined"
             label="Apellido"
@@ -137,6 +173,11 @@ class Crear_usuario extends Component {
             value={this.state.last_name}
             onChangeText={text => this.setState({last_name: text})}
           />
+          {this.state.show_error_last ? (
+            <HelperText type="error" visible={this.state.show_error_last}>
+              El Apellido no puede ser vacio
+            </HelperText>
+          ) : null}
           <TextInput
             mode="outlined"
             label="Correo"
@@ -145,34 +186,48 @@ class Crear_usuario extends Component {
             value={this.state.email}
             onChangeText={text => this.setState({email: text})}
           />
-          <List.Section>
-            <List.Subheader>PERMISOS DEL USUARIO</List.Subheader>
-
-            {this.state.menus.map(row => (
-              <TouchableWithoutFeedback
-                onPress={() => this._menu_change(row.id)}>
-                <Animatable.View ref={row.id}>
-                  <List.Item
-                    key={row.id}
-                    title={row.id}
-                    left={() =>
-                      row.activo === 0 ? (
-                        <Icon name="closecircleo" size={32} color="red" />
-                      ) : (
-                        <Icon name="checkcircleo" size={32} color="green" />
-                      )
-                    }
-                  />
-                </Animatable.View>
-              </TouchableWithoutFeedback>
-            ))}
+          {this.state.show_error_email ? (
+            <HelperText type="error" visible={this.state.show_error_email}>
+              El correo debe ser valido ejemplo: asd@gmail.com
+            </HelperText>
+          ) : null}
+          <List.Section title="Información Extra">
+            <List.Accordion
+              title="Menús"
+              theme={{colors: {primary: '#ff8c00'}}}
+              left={props => <List.Icon {...props} icon="folder" />}>
+              {this.state.menus.map(row => (
+                <TouchableWithoutFeedback
+                  onPress={() => this._menu_change(row.id)}>
+                  <Animatable.View ref={row.id}>
+                    <List.Item
+                      key={row.id}
+                      title={row.id}
+                      left={props =>
+                        row.activo === 0 ? (
+                          <List.Icon {...props} icon="close-circle-outline" size={25} color="red" />
+                        ) : (
+                          <List.Icon {...props} icon="checkbox-marked-circle-outline" size={25} color="green" />
+                        )
+                      }
+                    />
+                  </Animatable.View>
+                </TouchableWithoutFeedback>
+              ))}
+            </List.Accordion>
           </List.Section>
           <Button
             mode="outlined"
             theme={{colors: {primary: 'black'}}}
             onPress={() => this.chooseFile()}>
-              <Icon name="camerao" size={35} />
-                Foto
+            <Icon name="camera" size={30} />
+          </Button>
+          <Button
+            mode="outlined"
+            theme={{colors: {primary: '#ff8c00'}}}
+            onPress={() => this.comprobar_form()}>
+            <Icon name="account-check-outline" size={35} />
+            Registrar usuario
           </Button>
         </ScrollView>
       </SafeAreaView>
