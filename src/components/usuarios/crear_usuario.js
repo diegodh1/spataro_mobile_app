@@ -1,20 +1,21 @@
-import React, {Component, Fragment} from 'react';
+import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import {success_login, error_login} from '../../actions';
 import {
-  Text,
-  View,
   StyleSheet,
-  Image,
   TouchableWithoutFeedback,
   SafeAreaView,
   ScrollView,
 } from 'react-native';
-import {Input} from 'react-native-elements';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import LinearGradient from 'react-native-linear-gradient';
 import * as Animatable from 'react-native-animatable';
-import {TextInput, List, Button, HelperText} from 'react-native-paper';
+import {
+  TextInput,
+  List,
+  Button,
+  HelperText,
+  Snackbar,
+  Headline ,
+} from 'react-native-paper';
 import ImagePicker from 'react-native-image-picker';
 
 class Crear_usuario extends Component {
@@ -27,14 +28,16 @@ class Crear_usuario extends Component {
       last_name: '',
       email: '',
       menus: [],
-      checked: false,
       visible_menu: false,
       show_error_doc: false,
       show_error_pass: false,
       show_error_name: false,
       show_error_last: false,
       show_error_email: false,
-      filePath: '',
+      filePath: {data: ''},
+      cargando: false,
+      show_snackbar: false,
+      mensaje: '',
     };
     this._menu_change = this._menu_change.bind(this);
     this._openMenu = this._openMenu.bind(this);
@@ -55,8 +58,6 @@ class Crear_usuario extends Component {
       },
     };
     ImagePicker.showImagePicker(options, response => {
-      console.log('Response = ', response);
-
       if (response.didCancel) {
         console.log('User cancelled image picker');
       } else if (response.error) {
@@ -96,15 +97,15 @@ class Crear_usuario extends Component {
     this.refs[id_menu].pulse();
     const menu_aux = this.state.menus;
     for (let i = 0; i < menu_aux.length; i++) {
-      if (menu_aux[i].id === id_menu && menu_aux[i].activo === 0) {
+      if (menu_aux[i].id_menu === id_menu && menu_aux[i].activo === 0) {
         menu_aux[i].activo = 1;
-      } else if (menu_aux[i].id === id_menu && menu_aux[i].activo === 1) {
+      } else if (menu_aux[i].id_menu === id_menu && menu_aux[i].activo === 1) {
         menu_aux[i].activo = 0;
       }
     }
     this.setState({menus: menu_aux});
   };
-
+  _onDismissSnackBar = () => this.setState({show_snackbar: false});
   comprobar_form = () => {
     if (!Number(this.state.id_usuario)) this.setState({show_error_doc: true});
     if (this.state.passwrd.length < 6) this.setState({show_error_pass: true});
@@ -119,6 +120,73 @@ class Crear_usuario extends Component {
       this.setState({show_error_last: false});
     if (this.state.email.includes('@'))
       this.setState({show_error_email: false});
+    setTimeout(() => {
+      const {
+        show_error_doc,
+        show_error_pass,
+        show_error_name,
+        show_error_last,
+        show_error_email,
+      } = this.state;
+      if (
+        !show_error_doc &&
+        !show_error_pass &&
+        !show_error_name &&
+        !show_error_last &&
+        !show_error_email
+      ) {
+        this.setState({cargando: true});
+        const {menus} = this.state;
+        const filter = menus.filter(x => x.activo === 1);
+        fetch('http://192.168.1.86:4000/crear_usuario', {
+          method: 'POST',
+          body: JSON.stringify({
+            id_usuario: this.state.id_usuario,
+            id_tipo_doc: 'CÉDULA',
+            nombre: this.state.name,
+            apellido: this.state.last_name,
+            correo: this.state.email,
+            passwrd: this.state.passwrd,
+            foto: this.state.filePath.data,
+            menus: filter,
+          }), // data can be `string` or {object}!
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+          .then(res => res.json())
+          .then(response => {
+            if (response.status === 200) {
+              this.setState({
+                id_usuario: '',
+                id_tipo_doc: '',
+                name: '',
+                last_name: '',
+                email: '',
+                passwrd: '',
+                foto: {},
+                cargando: false,
+                show_snackbar: true,
+                mensaje: 'Registro realizado con éxito',
+              });
+            } else {
+              this.setState({
+                cargando: false,
+                show_snackbar: true,
+                mensaje: response.message,
+              });
+            }
+          })
+          .catch(error => {
+            this.setState({
+              cargando: false,
+              show_snackbar: true,
+              mensaje: error,
+            });
+            alert('No se pudo realizar el registro');
+          });
+      }
+    }, 100);
   };
 
   render() {
@@ -193,21 +261,31 @@ class Crear_usuario extends Component {
           ) : null}
           <List.Section title="Información Extra">
             <List.Accordion
-              title="Menús"
+              title="Permisos"
               theme={{colors: {primary: '#ff8c00'}}}
               left={props => <List.Icon {...props} icon="folder" />}>
               {this.state.menus.map(row => (
                 <TouchableWithoutFeedback
-                  onPress={() => this._menu_change(row.id)}>
-                  <Animatable.View ref={row.id}>
+                  onPress={() => this._menu_change(row.id_menu)}>
+                  <Animatable.View ref={row.id_menu}>
                     <List.Item
-                      key={row.id}
-                      title={row.id}
+                      key={row.id_menu}
+                      title={row.id_menu}
                       left={props =>
                         row.activo === 0 ? (
-                          <List.Icon {...props} icon="close-circle-outline" size={25} color="red" />
+                          <List.Icon
+                            {...props}
+                            icon="close-circle-outline"
+                            size={25}
+                            color="red"
+                          />
                         ) : (
-                          <List.Icon {...props} icon="checkbox-marked-circle-outline" size={25} color="green" />
+                          <List.Icon
+                            {...props}
+                            icon="checkbox-marked-circle-outline"
+                            size={25}
+                            color="green"
+                          />
                         )
                       }
                     />
@@ -221,14 +299,46 @@ class Crear_usuario extends Component {
             theme={{colors: {primary: 'black'}}}
             onPress={() => this.chooseFile()}>
             <Icon name="camera" size={30} />
+            FOTO
           </Button>
           <Button
             mode="outlined"
+            loading={this.state.cargando}
             theme={{colors: {primary: '#ff8c00'}}}
             onPress={() => this.comprobar_form()}>
             <Icon name="account-check-outline" size={35} />
             Registrar usuario
           </Button>
+          {this.state.show_snackbar &&
+          this.state.mensaje === 'Registro realizado con éxito' ? (
+            <Snackbar
+              visible={this.state.show_snackbar}
+              onDismiss={this._onDismissSnackBar}
+              style={{backgroundColor: '#5AB82C'}}
+              action={{
+                label: 'OK',
+                onPress: () => {
+                  this.setState({show_snackbar: false, mensaje: ''});
+                },
+              }}>
+              {this.state.mensaje}
+            </Snackbar>
+          ) : null}
+          {this.state.show_snackbar &&
+          this.state.mensaje !== 'Registro realizado con éxito' ? (
+            <Snackbar
+              visible={this.state.show_snackbar}
+              onDismiss={this._onDismissSnackBar}
+              style={{backgroundColor: '#E83A2C'}}
+              action={{
+                label: 'OK',
+                onPress: () => {
+                  this.setState({show_snackbar: false, mensaje: ''});
+                },
+              }}>
+              {this.state.mensaje}
+            </Snackbar>
+          ) : null}
         </ScrollView>
       </SafeAreaView>
     );
@@ -260,6 +370,6 @@ const styles = StyleSheet.create({
   input: {
     width: '95%',
     marginLeft: '2%',
-    marginTop: '2%',
+    marginTop: '3%',
   },
 });
