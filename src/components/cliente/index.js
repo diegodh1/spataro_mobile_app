@@ -1,19 +1,30 @@
 import React, {Component, Fragment} from 'react';
 import {connect} from 'react-redux';
-import {success_login, error_login} from '../../actions';
-import {Text, View, StyleSheet, Image, TouchableWithoutFeedback} from 'react-native';
-import {Input} from 'react-native-elements';
+import {StyleSheet, TouchableWithoutFeedback} from 'react-native';
 import Icon from 'react-native-vector-icons/AntDesign';
-import LinearGradient from 'react-native-linear-gradient';
 import * as Animatable from 'react-native-animatable';
-import {Appbar} from 'react-native-paper';
+import {Appbar, BottomNavigation} from 'react-native-paper';
+import Crear_cliente from './crear_cliente';
+import Editar_cliente from './editar_cliente';
 
 class Cliente extends Component {
   //declaramos el constructor
   constructor(props) {
     super(props);
     this.state = {
-      user: '',
+      index: 0,
+      routes: [
+        {
+          key: 'crear',
+          title: 'Crear Cliente',
+          icon: props => <Icon name="adduser" size={25} color="white" />,
+        },
+        {
+          key: 'editar',
+          title: 'Editar Cliente',
+          icon: props => <Icon name="edit" size={25} color="white" />,
+        },
+      ],
     };
     this.bounce = this.bounce.bind(this);
   }
@@ -24,6 +35,11 @@ class Cliente extends Component {
     }, 500);
     
   }
+  _handleIndexChange = index => this.setState({index});
+  _renderScene = BottomNavigation.SceneMap({
+    crear: Crear_cliente,
+    editar: Editar_cliente,
+  });
   render() {
     const {usuario} = this.props;
     return (
@@ -37,7 +53,16 @@ class Cliente extends Component {
           </Animatable.View>
           </TouchableWithoutFeedback>
         </Appbar.Header>
-        <Text style={styles.text}>Hola Cliente</Text>
+        <BottomNavigation
+          barStyle={styles.bottom}
+          activeColor='#ff8c00'
+          inactiveColor='#CDCDCD'
+          shifting={true}
+          sceneAnimationEnabled ={true}
+          navigationState={this.state}
+          onIndexChange={this._handleIndexChange}
+          renderScene={this._renderScene}
+        />
       </Fragment>
     );
   }
@@ -62,7 +87,16 @@ const styles = StyleSheet.create({
     color: 'black',
     backgroundColor: 'transparent',
   },
-  header:{
-    backgroundColor: '#000000'
+  header: {
+    backgroundColor: '#000000',
+  },
+  bottom: {
+    backgroundColor: '#000000',
+  },
+  activo:{
+    color: '#F2994A',
+  },
+  inactivo:{
+    color: '#CDCDCD',
   }
 });

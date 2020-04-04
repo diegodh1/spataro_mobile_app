@@ -1,13 +1,9 @@
 import React, {Component, Fragment} from 'react';
 import {connect} from 'react-redux';
-import {success_login, error_login} from '../../actions';
-import {Text, View, StyleSheet, Image, TouchableOpacity} from 'react-native';
-import {Input} from 'react-native-elements';
+import {StyleSheet,} from 'react-native';
 import Icon from 'react-native-vector-icons/AntDesign';
-import LinearGradient from 'react-native-linear-gradient';
 import Crear_usuario from './crear_usuario';
 import Editar_usuario from './editar_usuario';
-import * as Animatable from 'react-native-animatable';
 import {Appbar, BottomNavigation} from 'react-native-paper';
 
 class Usuario extends Component {
@@ -49,7 +45,6 @@ class Usuario extends Component {
             onPress={() => this.props.navigation.openDrawer()}
           />
           <Appbar.Content title="Usuarios" subtitle="crear y editar usuarios" />
-          <Icon name="infocirlceo" size={23} color="white" />
         </Appbar.Header>
         <BottomNavigation
           barStyle={styles.bottom}
