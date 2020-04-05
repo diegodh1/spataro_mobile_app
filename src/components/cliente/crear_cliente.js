@@ -176,41 +176,78 @@ class Crear_cliente extends Component {
         !show_error_last &&
         !show_error_email
       ) {
-        alert('comprobado');
+        this.setState({cargando: true});
+        fetch('http://192.168.1.86:4000/crear_cliente', {
+          method: 'POST',
+          body: JSON.stringify({
+            id_cliente: this.state.id_usuario_aux,
+            id_tipo_doc: this.state.id_tipo_doc,
+            nombre: this.state.name,
+            apellido: this.state.last_name,
+            correo: this.state.email,
+            direcciones: this.state.direcciones,
+            telefonos: this.state.telefonos,
+          }), // data can be `string` or {object}!
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+          .then((res) => res.json())
+          .then((response) => {
+            if (response.status === 200) {
+              this.setState({
+                mensaje: 'Registro realizado con éxito',
+                show_snackbar: true,
+                id_usuario_aux: '',
+                id_tipo_doc: '',
+                name: '',
+                last_name: '',
+                email: '',
+                direcciones: [],
+                telefonos: [],
+                cargando: false
+              });
+            } else {
+              this.setState({mensaje: response.message, show_snackbar: true,cargando: false});
+            }
+          })
+          .catch((error) => {
+            this.setState({show_snackbar: true, mensaje: error,cargando: false});
+          });
       }
     }, 100);
   };
   registrar_direccion() {
-    if (this.state.id_pais.length > 2 && this.state.id_ciudad.length > 2) {
+    if (this.state.id_pais.length > 2 && this.state.id_ciudad.length > 2 && this.state.id_direccion.length>1) {
       this.setState({error_direccion_tel: false});
       this.refs['direccion'].rubberBand();
       let {id_direccion, direcciones} = this.state;
-      direcciones.push(id_direccion);
+      direcciones.push({id_pais: this.state.id_pais, id_ciudad: this.state.id_ciudad, direccion: id_direccion});
       this.setState({direcciones: direcciones});
     } else {
       this.setState({error_direccion_tel: true});
     }
   }
-  delete_direccion(direccion) {
+  delete_direccion(dir) {
     let {direcciones} = this.state;
-    direcciones = direcciones.filter((x) => x !== direccion);
+    direcciones = direcciones.filter((x) => x.direccion !== dir);
     this.setState({direcciones: direcciones});
   }
 
   registrar_telefono() {
-    if (this.state.id_pais.length > 2 && this.state.id_ciudad.length > 2) {
+    if (this.state.id_pais.length > 2 && this.state.id_ciudad.length > 2 && this.state.id_telefono.length>1) {
       this.setState({error_direccion_tel: false});
       this.refs['telefono'].rubberBand();
       let {id_telefono, telefonos} = this.state;
-      telefonos.push(id_telefono);
+      telefonos.push({id_pais: this.state.id_pais, id_ciudad: this.state.id_ciudad, telefono: id_telefono});
       this.setState({telefonos: telefonos});
     } else {
       this.setState({error_direccion_tel: true});
     }
   }
-  delete_telefonos(telefono) {
+  delete_telefonos(tel) {
     let {telefonos} = this.state;
-    telefonos = telefonos.filter((x) => x !== telefono);
+    telefonos = telefonos.filter((x) => x.telefono !== tel);
     this.setState({telefonos: telefonos});
   }
   render() {
@@ -280,14 +317,6 @@ class Crear_cliente extends Component {
                 El correo debe ser valido ejemplo: asd@gmail.com
               </HelperText>
             ) : null}
-            <TextInput
-              mode="outlined"
-              label="Correo"
-              theme={{colors: {primary: '#ff8c00'}}}
-              style={styles.input}
-              value={this.state.email}
-              onChangeText={(text) => this.setState({email: text})}
-            />
             <Modal
               animationType="slide"
               visible={this.state.ciudad_open}
@@ -448,8 +477,8 @@ class Crear_cliente extends Component {
                       {this.state.direcciones.map((row, index) => (
                         <DataTable.Row
                           key={index}
-                          onPress={() => this.delete_direccion(row)}>
-                          <DataTable.Cell>{row}</DataTable.Cell>
+                          onPress={() => this.delete_direccion(row.direccion)}>
+                          <DataTable.Cell>{row.direccion}</DataTable.Cell>
                           <DataTable.Cell numeric>
                             <Icon name="close-circle" color="red" size={30} />
                           </DataTable.Cell>
@@ -467,8 +496,7 @@ class Crear_cliente extends Component {
                           this.setState({error_direccion_tel: false});
                         },
                       }}>
-                      Seleccione el país y la ciudad a al cual pertenece la
-                      dirección
+                      El país, la ciudad y la dirección no pueden ser vacio
                     </Snackbar>
                     <Button
                       mode="outlined"
@@ -528,8 +556,8 @@ class Crear_cliente extends Component {
                       {this.state.telefonos.map((row, index) => (
                         <DataTable.Row
                           key={index}
-                          onPress={() => this.delete_telefonos(row)}>
-                          <DataTable.Cell>{row}</DataTable.Cell>
+                          onPress={() => this.delete_telefonos(row.telefono)}>
+                          <DataTable.Cell>{row.telefono}</DataTable.Cell>
                           <DataTable.Cell numeric>
                             <Icon name="close-circle" color="red" size={30} />
                           </DataTable.Cell>
@@ -547,7 +575,7 @@ class Crear_cliente extends Component {
                           this.setState({error_direccion_tel: false});
                         },
                       }}>
-                      Seleccione el país y la ciudad a al cual pertenece el teléfono
+                      El país, la ciudad y el teléfono no pueden ser vacio
                     </Snackbar>
                     <Button
                       mode="outlined"
