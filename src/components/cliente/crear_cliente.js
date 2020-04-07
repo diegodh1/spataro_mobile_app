@@ -63,6 +63,7 @@ class Crear_cliente extends Component {
       telefono_open: false,
       error_direccion_tel: false,
       paises: [],
+      id_tipo_doc: 'NIT',
       direcciones: [],
       telefonos: [],
     };
@@ -199,7 +200,6 @@ class Crear_cliente extends Component {
                 mensaje: 'Registro realizado con éxito',
                 show_snackbar: true,
                 id_usuario_aux: '',
-                id_tipo_doc: '',
                 name: '',
                 last_name: '',
                 email: '',
@@ -208,10 +208,12 @@ class Crear_cliente extends Component {
                 cargando: false
               });
             } else {
-              this.setState({mensaje: response.message, show_snackbar: true,cargando: false});
+              alert(response.message);
+              this.setState({mensaje: response.message,cargando: false});
             }
           })
           .catch((error) => {
+            alert(error);
             this.setState({show_snackbar: true, mensaje: error,cargando: false});
           });
       }
@@ -635,8 +637,6 @@ class Crear_cliente extends Component {
               <Icon name="account-check-outline" size={35} />
               Crear Cliente
             </Button>
-            {this.state.show_snackbar &&
-            this.state.mensaje === 'Registro realizado con éxito' ? (
               <Snackbar
                 visible={this.state.show_snackbar}
                 onDismiss={this._onDismissSnackBar}
@@ -649,22 +649,6 @@ class Crear_cliente extends Component {
                 }}>
                 {this.state.mensaje}
               </Snackbar>
-            ) : null}
-            {this.state.show_snackbar &&
-            this.state.mensaje !== 'Registro realizado con éxito' ? (
-              <Snackbar
-                visible={this.state.show_snackbar}
-                onDismiss={this._onDismissSnackBar}
-                style={{backgroundColor: '#E83A2C'}}
-                action={{
-                  label: 'OK',
-                  onPress: () => {
-                    this.setState({show_snackbar: false, mensaje: ''});
-                  },
-                }}>
-                {this.state.mensaje}
-              </Snackbar>
-            ) : null}
           </View>
         </ScrollView>
       </SafeAreaView>

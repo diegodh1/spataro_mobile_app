@@ -32,7 +32,7 @@ import {
   ActivityIndicator,
 } from 'react-native-paper';
 
-class Editar_cliente extends Component {
+class Crear_pedido extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -177,16 +177,14 @@ class Editar_cliente extends Component {
         !show_error_email
       ) {
         this.setState({cargando: true});
-        fetch('http://192.168.1.86:4000/editar_cliente', {
+        fetch('http://192.168.1.86:4000/crear_cliente', {
           method: 'POST',
           body: JSON.stringify({
             id_cliente: this.state.id_usuario_aux,
-            id_client_aux: this.state.id_usuario,
             id_tipo_doc: this.state.id_tipo_doc,
             nombre: this.state.name,
             apellido: this.state.last_name,
             correo: this.state.email,
-            activo: this.state.activo,
             direcciones: this.state.direcciones,
             telefonos: this.state.telefonos,
           }), // data can be `string` or {object}!
@@ -201,45 +199,30 @@ class Editar_cliente extends Component {
                 mensaje: 'Registro realizado con éxito',
                 show_snackbar: true,
                 id_usuario_aux: '',
+                id_tipo_doc: '',
                 name: '',
                 last_name: '',
                 email: '',
                 direcciones: [],
                 telefonos: [],
-                cargando: false,
+                cargando: false
               });
             } else {
-              this.setState({
-                mensaje: response.message,
-                show_snackbar: true,
-                cargando: false,
-              });
+              this.setState({mensaje: response.message, show_snackbar: true,cargando: false});
             }
           })
           .catch((error) => {
-            this.setState({
-              show_snackbar: true,
-              mensaje: error,
-              cargando: false,
-            });
+            this.setState({show_snackbar: true, mensaje: error,cargando: false});
           });
       }
     }, 100);
   };
   registrar_direccion() {
-    if (
-      this.state.id_pais.length > 2 &&
-      this.state.id_ciudad.length > 2 &&
-      this.state.id_direccion.length > 1
-    ) {
+    if (this.state.id_pais.length > 2 && this.state.id_ciudad.length > 2 && this.state.id_direccion.length>1) {
       this.setState({error_direccion_tel: false});
       this.refs['direccion'].rubberBand();
       let {id_direccion, direcciones} = this.state;
-      direcciones.push({
-        id_pais: this.state.id_pais,
-        id_ciudad: this.state.id_ciudad,
-        direccion: id_direccion,
-      });
+      direcciones.push({id_pais: this.state.id_pais, id_ciudad: this.state.id_ciudad, direccion: id_direccion});
       this.setState({direcciones: direcciones});
     } else {
       this.setState({error_direccion_tel: true});
@@ -251,51 +234,12 @@ class Editar_cliente extends Component {
     this.setState({direcciones: direcciones});
   }
 
-  search_cliente(text) {
-    this.setState({id_usuario: text, searching: true});
-    fetch('http://192.168.1.86:4000/search_cliente', {
-      method: 'POST',
-      body: JSON.stringify({
-        id_cliente: text,
-      }), // data can be `string` or {object}!
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        this.setState({
-          id_usuario_aux: ""+response.id_cliente,
-          id_tipo_doc: response.id_tipo_doc,
-          name: response.nombre,
-          last_name: response.apellido,
-          email: response.correo,
-          direcciones: response.direcciones,
-          telefonos: response.telefonos,
-          activo: response.activo,
-          searching: false,
-        });
-      })
-      .catch((error) => {
-        this.setState({
-          searching: false,
-        });
-      });
-  }
   registrar_telefono() {
-    if (
-      this.state.id_pais.length > 2 &&
-      this.state.id_ciudad.length > 2 &&
-      this.state.id_telefono.length > 1
-    ) {
+    if (this.state.id_pais.length > 2 && this.state.id_ciudad.length > 2 && this.state.id_telefono.length>1) {
       this.setState({error_direccion_tel: false});
       this.refs['telefono'].rubberBand();
       let {id_telefono, telefonos} = this.state;
-      telefonos.push({
-        id_pais: this.state.id_pais,
-        id_ciudad: this.state.id_ciudad,
-        telefono: id_telefono,
-      });
+      telefonos.push({id_pais: this.state.id_pais, id_ciudad: this.state.id_ciudad, telefono: id_telefono});
       this.setState({telefonos: telefonos});
     } else {
       this.setState({error_direccion_tel: true});
@@ -306,38 +250,12 @@ class Editar_cliente extends Component {
     telefonos = telefonos.filter((x) => x.telefono !== tel);
     this.setState({telefonos: telefonos});
   }
-  _activar_desactivar_cliente = () =>
-  this.setState(state => ({activo: !state.activo}));
-
-
   render() {
     const {usuario} = this.props;
     return (
       <SafeAreaView>
         <ScrollView>
           <View style={{height: '100%'}}>
-            {this.state.searching ? (
-              <View style={styles.center_view}>
-                <ActivityIndicator
-                  animating={true}
-                  style={{top: 0, right: '20%', position: 'absolute'}}
-                  color="red"
-                />
-                <Text>Buscando</Text>
-              </View>
-            ) : (
-              <View style={styles.center_view}>
-                <Text>Buscar Cliente por Id</Text>
-              </View>
-            )}
-            <TextInput
-              mode="outlined"
-              label="Id Ciente"
-              theme={{colors: {primary: '#ff8c00'}}}
-              style={styles.input}
-              value={this.state.id_usuario}
-              onChangeText={(text) => this.search_cliente(text)}
-            />
             <Picker
               selectedValue={this.state.id_tipo_doc}
               onValueChange={(itemValue, itemIndex) =>
@@ -399,17 +317,6 @@ class Editar_cliente extends Component {
                 El correo debe ser valido ejemplo: asd@gmail.com
               </HelperText>
             ) : null}
-             <View style={styles.container}>
-            <Text>Activar o Desactivar Cliente</Text>
-            <Switch
-              style={{transform: [{scaleX: 1.5}, {scaleY: 1.5}]}}
-              trackColor={{false: '#767577', true: '#59B02F'}}
-              thumbColor={this.state.activo ? '#EDF3EB' : '#f4f3f4'}
-              ios_backgroundColor="#3e3e3e"
-              onValueChange={() => this._activar_desactivar_cliente()}
-              value={this.state.activo}
-            />
-            </View>
             <Modal
               animationType="slide"
               visible={this.state.ciudad_open}
@@ -721,12 +628,12 @@ class Editar_cliente extends Component {
             </View>
             <Button
               mode="outlined"
-              style={{width: '60%', marginLeft: '20%', marginTop: '5%'}}
+              style={{width: '60%', marginLeft: '20%', marginTop: '10%'}}
               loading={this.state.cargando}
               theme={{colors: {primary: 'green'}}}
               onPress={() => this.comprobar_form()}>
               <Icon name="account-check-outline" size={35} />
-              Editar Cliente
+              Crear Cliente
             </Button>
             {this.state.show_snackbar &&
             this.state.mensaje === 'Registro realizado con éxito' ? (
@@ -772,7 +679,7 @@ const mapStateToProps = (state) => {
 };
 const mapDispatchToProps = {};
 
-export default connect(mapStateToProps, mapDispatchToProps)(Editar_cliente);
+export default connect(mapStateToProps, mapDispatchToProps)(Crear_pedido);
 
 const styles = StyleSheet.create({
   container: {

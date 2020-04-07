@@ -32,7 +32,7 @@ import {
   ActivityIndicator,
 } from 'react-native-paper';
 
-class Editar_cliente extends Component {
+class Editar_pedido extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -201,6 +201,7 @@ class Editar_cliente extends Component {
                 mensaje: 'Registro realizado con éxito',
                 show_snackbar: true,
                 id_usuario_aux: '',
+                id_tipo_doc: '',
                 name: '',
                 last_name: '',
                 email: '',
@@ -772,7 +773,7 @@ const mapStateToProps = (state) => {
 };
 const mapDispatchToProps = {};
 
-export default connect(mapStateToProps, mapDispatchToProps)(Editar_cliente);
+export default connect(mapStateToProps, mapDispatchToProps)(Editar_pedido);
 
 const styles = StyleSheet.create({
   container: {

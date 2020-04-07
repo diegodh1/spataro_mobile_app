@@ -120,7 +120,7 @@ class Referencia extends Component {
             color="#ff8c00"
             onPress={() => this.props.navigation.openDrawer()}
           />
-          <Appbar.Content title="Pedidos" subtitle="crear y editar pedidos" />
+          <Appbar.Content title="Referencia" subtitle="crear, eliminar y editar referencias" />
           <TouchableWithoutFeedback onPress={this.bounce}>
             <Animatable.View ref="view">
               <Icon name="chevron-left" size={50} color="#ff8c00" />
