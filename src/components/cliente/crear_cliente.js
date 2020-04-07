@@ -640,7 +640,7 @@ class Crear_cliente extends Component {
               <Snackbar
                 visible={this.state.show_snackbar}
                 onDismiss={this._onDismissSnackBar}
-                style={{backgroundColor: '#5AB82C'}}
+                style={{backgroundColor: '#4B0082'}}
                 action={{
                   label: 'OK',
                   onPress: () => {

@@ -11,6 +11,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import com.oblador.vectoricons.VectorIconsPackage;
 import com.BV.LinearGradient.LinearGradientPackage;
+import io.github.elyx0.reactnativedocumentpicker.DocumentPickerPackage; // Import package 
+import com.rnfs.RNFSPackage;
 
 public class MainApplication extends Application implements ReactApplication {
 

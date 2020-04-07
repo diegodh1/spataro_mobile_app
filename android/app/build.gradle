@@ -192,6 +192,8 @@ dependencies {
     // For WebP support, including animated WebP
     implementation 'com.facebook.fresco:animated-webp:2.1.0'
     implementation 'com.facebook.fresco:webpsupport:2.0.0'
+    compile project(':react-native-document-picker')
+    compile project(':react-native-fs')
 
     // For WebP support, without animations
     implementation 'com.facebook.fresco:webpsupport:2.0.0'

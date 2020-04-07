@@ -11,6 +11,7 @@ import Usuario from '../usuarios';
 import Cliente from '../cliente';
 import Pedido from '../pedido';
 import Menu_perfil from './drawer_perfil';
+import Referencia from '../referencia';
 import {
   useTheme,
   Avatar,
@@ -67,6 +68,11 @@ function MyDrawer() {
       options={{
         drawerIcon: config => <Icon name="smileo" size={23} color="white" />,
       }}/>
+       <Drawer.Screen name="Referencia" component={Referencia} 
+      options={{
+        drawerIcon: config => <Icon name="file1" size={23} color="white" />,
+      }}/>
+
       <Drawer.Screen name="Pedido" component={Pedido} 
       options={{
         drawerIcon: config => <Icon name="carryout" size={23} color="white" />,
