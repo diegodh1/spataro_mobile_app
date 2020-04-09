@@ -61,6 +61,17 @@ class Crear_pedido extends Component {
       show_unidades: false,
       file: {uri: ''},
       base64: '',
+      id_referencia: '',
+      id_ref_color: '',
+      id_consecutivo: '',
+      referencias: [],
+      colores_refencia: [],
+      ref_color_tallas: [],
+      ref_color_tallas_aux: [],
+      cantidad: 0,
+      item: {},
+      informacion: {items: []},
+      actualizando: false,
     };
     this.bounce = this.bounce.bind(this);
   }
@@ -95,6 +106,96 @@ class Crear_pedido extends Component {
         });
     }, 200);
   }
+
+  search_referencia(value) {
+    this.setState({
+      id_referencia: value,
+      searching: true,
+      colores_refencia: [],
+      ref_color_tallas: [],
+    });
+    fetch('http://192.168.1.86:4000/search_ref', {
+      method: 'POST',
+      body: JSON.stringify({
+        id_referencia: value,
+      }), // data can be `string` or {object}!
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(res => res.json())
+      .then(response => {
+        this.setState({referencias: response.sugerencias, searching: false});
+      })
+      .catch(error => {
+        this.setState({searching: false});
+        alert(error);
+      });
+  }
+
+  search_ref_color(value) {
+    this.setState({
+      searching: true,
+      ref_color_tallas: [],
+      id_referencia: value,
+    });
+    fetch('http://192.168.1.86:4000/search_ref_color', {
+      method: 'POST',
+      body: JSON.stringify({
+        id_referencia: value,
+      }), // data can be `string` or {object}!
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(res => res.json())
+      .then(response => {
+        this.setState({
+          colores_refencia: response.sugerencias,
+          searching: false,
+        });
+      })
+      .catch(error => {
+        this.setState({searching: false});
+        alert(error);
+      });
+  }
+
+  search_ref_color_talla(value) {
+    this.setState({
+      searching: true,
+      id_ref_color: value,
+    });
+    fetch('http://192.168.1.86:4000/search_ref_color_talla', {
+      method: 'POST',
+      body: JSON.stringify({
+        id_ref_color: value,
+      }), // data can be `string` or {object}!
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(res => res.json())
+      .then(response => {
+        this.setState({
+          ref_color_tallas: response.sugerencias,
+          searching: false,
+        });
+        let aux_tallas = [];
+        for (let i = 0; i < response.sugerencias.length; i++) {
+          aux_tallas.push({
+            label: '' + response.sugerencias[i].id_talla,
+            value: '' + response.sugerencias[i].id_consecutivo,
+          });
+        }
+        this.setState({ref_color_tallas_aux: aux_tallas});
+      })
+      .catch(error => {
+        this.setState({searching: false});
+        alert(error);
+      });
+  }
+
   async select_file() {
     try {
       const res = await DocumentPicker.pick({
@@ -140,17 +241,18 @@ class Crear_pedido extends Component {
         });
     }, 200);
   }
+
   crear_pedido() {
     this.setState({cargando: true});
     const {id_cliente, date, observacion} = this.state;
     const {usuario} = this.props;
     let id_usuario = usuario.id_usuario;
     const ruta = this.state.file.uri;
-    if(ruta!==''){
-    RNFS.readFile(ruta, 'base64') //substring(7) -> to remove the file://
-      .then(res => this.setState({firma: res}));
+    if (ruta !== '') {
+      RNFS.readFile(ruta, 'base64') //substring(7) -> to remove the file://
+        .then(res => this.setState({firma: res}));
     }
-    
+
     setTimeout(() => {
       const {firma} = this.state;
       if (this.state.id_pedido === '') {
@@ -225,12 +327,114 @@ class Crear_pedido extends Component {
     }, 200);
   }
 
+  registrar_unidades() {
+    this.setState({cargando: true});
+    if (
+      Number(this.state.cantidad) &&
+      this.state.cantidad > 0 &&
+      this.state.id_consecutivo !== ''
+    ) {
+      fetch('http://192.168.1.86:4000/agregar_item_pedido', {
+        method: 'POST',
+        body: JSON.stringify({
+          id_pedido: this.state.id_pedido,
+          id_consecutivo: this.state.id_consecutivo,
+          unidades: this.state.cantidad,
+          precio: this.state.item.precio,
+        }), // data can be `string` or {object}!
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then(res => res.json())
+        .then(response => {
+          if (response.message === 'Registro Realizado') {
+            this.setState({cargando: false, cantidad: 0});
+            this.dar_unidades_registradas();
+          } else {
+            this.setState({cargando: false});
+            alert(response.message);
+          }
+        })
+        .catch(error => {
+          this.setState({cargando: false});
+          alert(error);
+        });
+    } else {
+      this.setState({cargando: false});
+      alert(
+        'La cantidad debe ser un número y mayor a 0, y debe escoger una referencia, color y talla',
+      );
+    }
+  }
+
+  dar_unidades_registradas() {
+    fetch('http://192.168.1.86:4000/dar_items_guardados', {
+      method: 'POST',
+      body: JSON.stringify({
+        id_pedido: this.state.id_pedido,
+      }), // data can be `string` or {object}!
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(res => res.json())
+      .then(response => {
+        this.setState({informacion: response});
+      })
+      .catch(error => {
+        alert(error);
+      });
+  }
+  delete_ref_pedido(value) {
+    this.setState({actualizando: true});
+    fetch('http://192.168.1.86:4000/eliminar_ref_unidades', {
+      method: 'POST',
+      body: JSON.stringify({
+        id_pedido: this.state.id_pedido,
+        consecutivo: value,
+      }), // data can be `string` or {object}!
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(res => res.json())
+      .then(response => {
+        if (response.status === 200) {
+          this.setState({actualizando: false});
+          this.dar_unidades_registradas();
+        } else {
+          this.setState({actualizando: false});
+          alert(response.message);
+        }
+      })
+      .catch(error => {
+        this.setState({actualizando: false});
+        alert(error);
+      });
+  }
+
   handleSelectItem(item, index) {
     const {onDropdownClose} = this.props;
     onDropdownClose();
     console.log(item);
   }
-  set_id_cliente = value => this.setState({id_cliente: value});
+  set_id_cliente = value => {
+    this.setState({id_cliente: value});
+    alert('Nro Documento: '+ value);
+  }
+  set_id_consecutivo = value => {
+    this.setState({id_consecutivo: value});
+    let temp = this.state.ref_color_tallas;
+    for (let i = 0; i < temp.length; i++) {
+      if (temp[i].id_consecutivo == value) {
+        this.setState({item: temp[i]});
+      }
+    }
+  };
+  set_cantidad = value => {
+    this.setState({cantidad: value});
+  };
   onDismissSnackBar = () => this.setState({show_snack: false});
   _hide_unidades = () => this.setState({show_unidades: false});
   _hide_firma = () => this.setState({show_firma: false});
@@ -241,6 +445,21 @@ class Crear_pedido extends Component {
     const {usuario} = this.props;
     const placeholder = {
       label: 'Seleccionar un cliente...',
+      value: null,
+      color: '#9EA0A4',
+    };
+    const placeholder_ref = {
+      label: 'Seleccionar una referencia...',
+      value: null,
+      color: '#9EA0A4',
+    };
+    const placeholder_color = {
+      label: 'Seleccionar un color...',
+      value: null,
+      color: '#9EA0A4',
+    };
+    const placeholder_talla = {
+      label: 'Seleccionar una talla...',
       value: null,
       color: '#9EA0A4',
     };
@@ -386,7 +605,7 @@ class Crear_pedido extends Component {
                   <Icon name="feather" size={35} />
                   Seleccionar Firma
                 </Button>
-                <Text style={styles.center_view}>{this.state.file.uri}</Text>
+                <Text style={styles.center_view}>{this.state.file.name}</Text>
                 <TextInput
                   mode="outlined"
                   multiline={true}
@@ -398,7 +617,7 @@ class Crear_pedido extends Component {
                 />
               </View>
             ) : null}
-            
+
             <Button
               mode="outlined"
               style={{
@@ -422,12 +641,171 @@ class Crear_pedido extends Component {
               }}>
               <SafeAreaView>
                 <ScrollView>
-                  <View style={styles.center_view}>
-                    <Text>unidades</Text>
+                  <View>
+                    {this.state.searching ? (
+                      <View style={styles.center_view}>
+                        <ActivityIndicator
+                          animating={true}
+                          style={{
+                            top: '35%',
+                            position: 'absolute',
+                            right: '20%',
+                          }}
+                          color="red"
+                        />
+                        <Text style={{fontSize: 20, marginTop: '5%'}}>
+                          Buscando
+                        </Text>
+                      </View>
+                    ) : (
+                      <View style={styles.center_view}>
+                        <Text style={{fontSize: 20, marginTop: '5%'}}>
+                          Buscar Sugerencias
+                        </Text>
+                      </View>
+                    )}
+                    <TextInput
+                      mode="outlined"
+                      label="Buscar Referencia"
+                      theme={{colors: {primary: '#ff8c00'}}}
+                      style={styles.input}
+                      value={this.state.id_referencia}
+                      onChangeText={text => this.search_referencia(text)}
+                    />
+                    <RNPickerSelect
+                      placeholder={placeholder_ref}
+                      onValueChange={value => this.search_ref_color(value)}
+                      items={this.state.referencias}
+                      style={{
+                        ...pickerSelectStyles,
+                        iconContainer: {
+                          top: 20,
+                          right: 10,
+                        },
+                        placeholder: {
+                          color: 'black',
+                          fontSize: 16,
+                        },
+                      }}
+                    />
+                    <RNPickerSelect
+                      placeholder={placeholder_color}
+                      onValueChange={value =>
+                        this.search_ref_color_talla(value)
+                      }
+                      items={this.state.colores_refencia}
+                      style={{
+                        ...pickerSelectStyles,
+                        iconContainer: {
+                          top: 20,
+                          right: 10,
+                        },
+                        placeholder: {
+                          color: 'black',
+                          fontSize: 16,
+                        },
+                      }}
+                    />
+                    <RNPickerSelect
+                      placeholder={placeholder_talla}
+                      onValueChange={value => this.set_id_consecutivo(value)}
+                      items={this.state.ref_color_tallas_aux}
+                      style={{
+                        ...pickerSelectStyles,
+                        iconContainer: {
+                          top: 20,
+                          right: 10,
+                        },
+                        placeholder: {
+                          color: 'black',
+                          fontSize: 16,
+                        },
+                      }}
+                    />
+                    <TextInput
+                      mode="outlined"
+                      label="Ingresar Cantidad"
+                      theme={{colors: {primary: '#ff8c00'}}}
+                      style={styles.input}
+                      value={this.state.cantidad}
+                      onChangeText={text => this.set_cantidad(text)}
+                    />
+                    <Button
+                      mode="outlined"
+                      style={{
+                        width: '50%',
+                        marginLeft: '25%',
+                        backgroundColor: '#2E8B57',
+                        borderRadius: 10,
+                        marginTop: '5%',
+                      }}
+                      loading={this.state.cargando}
+                      theme={{colors: {primary: 'white'}}}
+                      onPress={() => this.registrar_unidades()}>
+                      <Icon name="cart" size={35} />
+                      Agregar
+                    </Button>
+                    <View>
+                      {this.state.actualizando ? (
+                        <View style={styles.center_view}>
+                          <ActivityIndicator
+                            animating={true}
+                            style={{
+                              top: '35%',
+                              position: 'absolute',
+                              right: '20%',
+                            }}
+                            color="red"
+                          />
+                          <Text style={{fontSize: 20, marginTop: '5%'}}>
+                            actualizando
+                          </Text>
+                        </View>
+                      ) : (
+                        <View style={styles.center_view}>
+                          <Text style={{fontSize: 20, marginTop: '5%'}}>
+                            Información
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                    <DataTable>
+                      <DataTable.Header>
+                        <DataTable.Title>Referencia</DataTable.Title>
+                        <DataTable.Title>Color</DataTable.Title>
+                        <DataTable.Title>Talla</DataTable.Title>
+                        <DataTable.Title>Unidades</DataTable.Title>
+                        <DataTable.Title>Eliminar</DataTable.Title>
+                      </DataTable.Header>
+                    </DataTable>
+                    {this.state.informacion.items.map((row, index) => (
+                      <DataTable.Row
+                        key={index}
+                        onPress={() =>
+                          this.delete_ref_pedido(row.id_consecutivo)
+                        }>
+                        <DataTable.Cell>{row.referencia}</DataTable.Cell>
+                        <DataTable.Cell>{row.color}</DataTable.Cell>
+                        <DataTable.Cell>{row.id_talla}</DataTable.Cell>
+                        <DataTable.Cell>{row.unidades}</DataTable.Cell>
+                        <DataTable.Cell>
+                          <Icon name="delete" size={35} color="red" />
+                        </DataTable.Cell>
+                      </DataTable.Row>
+                    ))}
+                    <View style={styles.center_view}>
+                    <Text style={{marginTop:'5%'}}>
+                      TOTAL UNIDADES: {this.state.informacion.unidades_total}
+                    </Text>
+                    <Text>
+                      PRECIO TOTAL: {this.state.informacion.precio_total}
+                    </Text>
+                    </View>
                     <Button
                       mode="outlined"
                       style={{
                         width: '100%',
+                        marginTop: '5%',
                       }}
                       loading={this.state.cargando}
                       theme={{colors: {primary: 'green'}}}
@@ -457,8 +835,7 @@ class Crear_pedido extends Component {
                 <Icon name="check" size={35} />
                 Finalizar
               </Button>
-              {this.state.show_firma?
-              <Firma />:null}
+              {this.state.show_firma ? <Firma /> : null}
             </Modal>
           </View>
         </ScrollView>
