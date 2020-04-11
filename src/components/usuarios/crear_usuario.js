@@ -14,7 +14,6 @@ import {
   Button,
   HelperText,
   Snackbar,
-  Headline ,
 } from 'react-native-paper';
 import ImagePicker from 'react-native-image-picker';
 

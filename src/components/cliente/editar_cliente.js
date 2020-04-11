@@ -1,4 +1,4 @@
-import React, {Component, Fragment} from 'react';
+import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import {
   StyleSheet,
@@ -8,8 +8,6 @@ import {
   View,
   ScrollView,
   Picker,
-  TouchableHighlight,
-  TouchableOpacity,
   Text,
   Modal,
 } from 'react-native';
@@ -23,11 +21,7 @@ import {
   HelperText,
   Snackbar,
   Divider,
-  Searchbar,
   DataTable,
-  Subheading,
-  Portal,
-  Provider,
   FAB,
   ActivityIndicator,
 } from 'react-native-paper';
@@ -721,9 +715,9 @@ class Editar_cliente extends Component {
             </View>
             <Button
               mode="outlined"
-              style={{width: '60%', marginLeft: '20%', marginTop: '5%'}}
+              style={{width: '90%', marginLeft: '4%', marginTop: '3%', backgroundColor:'black', borderRadius:15, marginBottom:'3%'}}
               loading={this.state.cargando}
-              theme={{colors: {primary: 'green'}}}
+              theme={{colors: {primary: '#F7B21E'}}}
               onPress={() => this.comprobar_form()}>
               <Icon name="account-check-outline" size={35} />
               Editar Cliente

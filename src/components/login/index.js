@@ -7,6 +7,7 @@ import Icon from 'react-native-vector-icons/AntDesign';
 import LinearGradient from 'react-native-linear-gradient';
 import {Modal} from 'react-native-paper';
 import * as Animatable from 'react-native-animatable';
+import {Snackbar} from 'react-native-paper';
 
 class Login extends Component {
   //declaramos el constructor
@@ -17,6 +18,8 @@ class Login extends Component {
       password: '',
       cargando: false,
       show_password: false,
+      show_snack: false,
+      message: '',
     };
     this.handleSubmit = this.handleSubmit.bind(this);
     this.setUser = this.setUser.bind(this);
@@ -52,13 +55,20 @@ class Login extends Component {
             this.props.error_login(
               'error ingresando sesión, compruebe usuario y contraseña',
             );
-            alert('error ingresando sesión, compruebe usuario y contraseña');
+            this.setState({
+              message:
+                'error ingresando sesión, compruebe usuario y contraseña',
+              show_snack: true,
+            });
           } else {
             this.setState({cargando: false});
             this.props.error_login(
               'el servidor no puede procesar la solicitud',
             );
-            alert('error interno del servidor');
+            this.setState({
+              message: 'error interno del servidor',
+              show_snack: true,
+            });
           }
         }
       })
@@ -77,6 +87,7 @@ class Login extends Component {
     this.setState({show_password: true});
     event.preventDefault();
   }
+  onDismissSnackBar = () => this.setState({show_snack: false});
   render() {
     return (
       <Fragment>
@@ -104,7 +115,7 @@ class Login extends Component {
                   onChangeText={text => this.setUser(text)}
                   leftIcon={<Icon name="user" size={32} color="white" />}
                 />
-                <View style={styles.input}></View>
+                <View style={styles.input} />
                 {this.state.show_password ? (
                   <Input
                     type="text"
@@ -137,6 +148,19 @@ class Login extends Component {
                     }
                   />
                 )}
+                <Snackbar
+                  visible={this.state.show_snack}
+                  onDismiss={this.onDismissSnackBar}
+                  style={{backgroundColor: 'red'}}
+                  theme={{colors: {accent: 'white'}}}
+                  action={{
+                    label: 'OK',
+                    onPress: () => {
+                      this.setState({show_snack: false});
+                    },
+                  }}>
+                  {this.state.message}
+                </Snackbar>
                 <LinearGradient
                   start={{x: 0.0, y: 0.25}}
                   end={{x: 0.5, y: 1.0}}
@@ -153,12 +177,14 @@ class Login extends Component {
             </Animatable.View>
           </LinearGradient>
         ) : (
-          <Modal visible={this.state.cargando} contentContainerStyle={{backgroundColor:'#fee89b'}}>
-            <View style={{height:'100%'}}>
-            <Image
-              style={styles.loader}
-              source={require('../../public/loader.gif')}
-            />
+          <Modal
+            visible={this.state.cargando}
+            contentContainerStyle={{backgroundColor: '#fee89b'}}>
+            <View style={{height: '100%'}}>
+              <Image
+                style={styles.loader}
+                source={require('../../public/loader.gif')}
+              />
             </View>
           </Modal>
         )}
@@ -177,7 +203,10 @@ const mapDispatchToProps = {
   error_login,
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Login);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(Login);
 
 const styles = StyleSheet.create({
   container: {
@@ -206,9 +235,9 @@ const styles = StyleSheet.create({
   loader: {
     backgroundColor: 'transparent',
     resizeMode: 'stretch',
-    marginTop:'50%',
-    width:'100%',
-    height:'50%',
+    marginTop: '50%',
+    width: '100%',
+    height: '50%',
   },
   linearGradient: {
     marginTop: '15%',

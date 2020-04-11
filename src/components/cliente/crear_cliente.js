@@ -4,12 +4,9 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
   SafeAreaView,
-  Switch,
   View,
   ScrollView,
   Picker,
-  TouchableHighlight,
-  TouchableOpacity,
   Text,
   Modal,
 } from 'react-native';
@@ -23,11 +20,7 @@ import {
   HelperText,
   Snackbar,
   Divider,
-  Searchbar,
   DataTable,
-  Subheading,
-  Portal,
-  Provider,
   FAB,
   ActivityIndicator,
 } from 'react-native-paper';
@@ -630,9 +623,9 @@ class Crear_cliente extends Component {
             </View>
             <Button
               mode="outlined"
-              style={{width: '60%', marginLeft: '20%', marginTop: '10%'}}
+              style={{width: '90%', marginLeft: '5%', marginTop: '10%', backgroundColor:'black', borderRadius:15}}
               loading={this.state.cargando}
-              theme={{colors: {primary: 'green'}}}
+              theme={{colors: {primary: '#F7B21E'}}}
               onPress={() => this.comprobar_form()}>
               <Icon name="account-check-outline" size={35} />
               Crear Cliente

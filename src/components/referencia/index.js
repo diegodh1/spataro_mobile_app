@@ -1,15 +1,11 @@
-import React, {Component, Fragment} from 'react';
+import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import {success_login, error_login} from '../../actions';
 import {
   Text,
   View,
   StyleSheet,
-  Image,
   TouchableWithoutFeedback,
 } from 'react-native';
-import {Input} from 'react-native-elements';
-import LinearGradient from 'react-native-linear-gradient';
 import * as Animatable from 'react-native-animatable';
 import {Appbar} from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -111,6 +107,7 @@ class Referencia extends Component {
 
   render() {
     const {usuario} = this.props;
+    const size =40;
     return (
       <View>
         <Appbar.Header style={styles.header}>
@@ -131,8 +128,8 @@ class Referencia extends Component {
 
         <Button
           mode="outlined"
-          style={{width: '100%', marginTop: '10%'}}
-          theme={{colors: {primary: '#ff8c00'}}}
+          style={{width: '100%', marginTop: '10%', backgroundColor:'#F7B21E', width:'80%', marginLeft:'10%'}}
+          theme={{colors: {primary: 'black'}}}
           onPress={() => this.select_file()}>
           <Icon name="file-table" size={35} />
           Seleccionar Excel
@@ -149,8 +146,8 @@ class Referencia extends Component {
           style={{marginTop: '10%', marginLeft: '40%'}}
           onValueChange={(value) => this.setState({tipo: value})}
           value={this.state.tipo}>
-          <ToggleButton icon="alpha-u-box-outline" value="UND" />
-          <ToggleButton icon="alpha-m-box-outline" value="MTS" />
+          <ToggleButton size={size} icon="alpha-u-box-outline" value="UND" />
+          <ToggleButton size={size} icon="alpha-m-box-outline" value="MTS" />
         </ToggleButton.Row>
         {this.state.snack && this.state.message === 'Registros Realizados' ? (
           <Snackbar
@@ -183,8 +180,8 @@ class Referencia extends Component {
         <Button
           loading={this.state.loading}
           mode="outlined"
-          style={{width: '70%', marginTop: '10%', marginLeft: '13%'}}
-          theme={{colors: {primary: 'green'}}}
+          style={{marginTop: '10%',backgroundColor:'black', width:'80%', marginLeft:'10%'}}
+          theme={{colors: {primary: '#F7B21E'}}}
           onPress={() => this.upload_file()}>
           <Icon name="cloud-upload" size={35} />
           Actualizar

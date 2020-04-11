@@ -1,42 +1,32 @@
-import React, {Component, Fragment} from 'react';
+import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import {
   StyleSheet,
-  TouchableWithoutFeedback,
   SafeAreaView,
-  Switch,
   View,
   ScrollView,
-  Picker,
-  TouchableHighlight,
-  TouchableOpacity,
   Text,
   Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import Autocomplete from 'react-native-autocomplete-input';
-import * as Animatable from 'react-native-animatable';
 import {
   TextInput,
-  List,
   Button,
-  HelperText,
   Snackbar,
   Divider,
   Searchbar,
   DataTable,
-  Subheading,
-  Portal,
-  Provider,
-  FAB,
   ActivityIndicator,
+  Paragraph,
+  Title,
+  Badge,
 } from 'react-native-paper';
 import RNPickerSelect from 'react-native-picker-select';
 import DatePicker from 'react-native-datepicker';
-import RNSketchCanvas from '@terrylinla/react-native-sketch-canvas';
 import RNFS from 'react-native-fs';
 import DocumentPicker from 'react-native-document-picker';
 import Firma from './firma';
+import AwesomeAlert from 'react-native-awesome-alerts';
 
 class Crear_pedido extends Component {
   constructor(props) {
@@ -55,6 +45,7 @@ class Crear_pedido extends Component {
       date: '',
       id_pedido: '',
       id_cliente: '',
+      selected_cliente: {nombre: '', apellido: '', correo: '', id_cliente: ''},
       show_snack: false,
       message: '',
       show_firma: false,
@@ -72,6 +63,9 @@ class Crear_pedido extends Component {
       item: {},
       informacion: {items: []},
       actualizando: false,
+      show_dialog: false,
+      estado_pedido: 'PENDIENTE',
+      direccion_despacho: '',
     };
     this.bounce = this.bounce.bind(this);
   }
@@ -241,10 +235,9 @@ class Crear_pedido extends Component {
         });
     }, 200);
   }
-
-  crear_pedido() {
+  crear_pedido(value) {
     this.setState({cargando: true});
-    const {id_cliente, date, observacion} = this.state;
+    const {id_cliente, date, observacion, direccion_despacho} = this.state;
     const {usuario} = this.props;
     let id_usuario = usuario.id_usuario;
     const ruta = this.state.file.uri;
@@ -264,6 +257,7 @@ class Crear_pedido extends Component {
             fecha: date,
             firma,
             observacion,
+            direccion: direccion_despacho,
           }), // data can be `string` or {object}!
           headers: {
             'Content-Type': 'application/json',
@@ -294,11 +288,12 @@ class Crear_pedido extends Component {
           method: 'POST',
           body: JSON.stringify({
             id_cliente,
-            activo: 'REALIZADO',
+            activo: value,
             fecha: date,
             firma,
             id_pedido: this.state.id_pedido,
             observacion,
+            direccion: direccion_despacho,
           }), // data can be `string` or {object}!
           headers: {
             'Content-Type': 'application/json',
@@ -310,12 +305,47 @@ class Crear_pedido extends Component {
               alert(response.message);
               this.setState({cargando: false});
             } else {
-              let mensaje = 'Pedido Finalizado';
+              let mensaje = 'OPERACIÓN REALIZADA';
               this.setState({
+                nombre_cliente: '',
+                apellido_cliente: '',
+                fecha: '',
+                name: '',
+                firma: '',
+                observacion: '',
                 cargando: false,
-                show_snack: true,
-                id_pedido: response.id_pedido,
-                message: mensaje,
+                clientes: [],
+                clientes_aux: [],
+                searching: false,
+                date: '',
+                id_pedido: '',
+                id_cliente: '',
+                selected_cliente: {
+                  nombre: '',
+                  apellido: '',
+                  correo: '',
+                  id_cliente: '',
+                },
+                show_snack: false,
+                message: '',
+                show_firma: false,
+                show_unidades: false,
+                file: {uri: ''},
+                base64: '',
+                id_referencia: '',
+                id_ref_color: '',
+                id_consecutivo: '',
+                referencias: [],
+                colores_refencia: [],
+                ref_color_tallas: [],
+                ref_color_tallas_aux: [],
+                cantidad: 0,
+                item: {},
+                informacion: {items: []},
+                actualizando: false,
+                show_dialog: false,
+                estado_pedido: 'PENDIENTE',
+                direccion_despacho: '',
               });
             }
           })
@@ -421,8 +451,12 @@ class Crear_pedido extends Component {
   }
   set_id_cliente = value => {
     this.setState({id_cliente: value});
-    alert('Nro Documento: '+ value);
-  }
+    for (let i = 0; i < this.state.clientes.length; i++) {
+      if (this.state.clientes[i].id_cliente === value) {
+        this.setState({selected_cliente: this.state.clientes[i]});
+      }
+    }
+  };
   set_id_consecutivo = value => {
     this.setState({id_consecutivo: value});
     let temp = this.state.ref_color_tallas;
@@ -441,6 +475,18 @@ class Crear_pedido extends Component {
   bounce() {
     this.refs.view.rubberBand();
   }
+
+  hide_dialog = value => {
+    this.setState({show_dialog: false, estado_pedido: value});
+    this.crear_pedido(value);
+  };
+  show_crear_pedido = () => {
+    if (this.state.id_pedido === '') {
+      this.crear_pedido('PENDIENTE');
+    } else {
+      this.setState({show_dialog: true});
+    }
+  };
   render() {
     const {usuario} = this.props;
     const placeholder = {
@@ -463,10 +509,15 @@ class Crear_pedido extends Component {
       value: null,
       color: '#9EA0A4',
     };
+    const elevation = 4;
+    const size = 40;
     return (
       <SafeAreaView>
         <ScrollView>
-          <View style={{height: '100%'}}>
+          <View>
+            <Badge size={size} style={{backgroundColor: 'red'}}>
+              {this.state.id_pedido}
+            </Badge>
             {this.state.searching ? (
               <View style={styles.center_view}>
                 <ActivityIndicator
@@ -484,21 +535,19 @@ class Crear_pedido extends Component {
               </View>
             )}
 
-            <TextInput
-              mode="outlined"
-              label="Buscar por Nombre"
+            <Searchbar
+              placeholder="Buscar por Nombre"
               theme={{colors: {primary: '#ff8c00'}}}
               style={styles.input}
-              value={this.state.nombre_cliente}
               onChangeText={text => this.search_cliente_n(text)}
+              value={this.state.nombre_cliente}
             />
-            <TextInput
-              mode="outlined"
-              label="Buscar por Apellido"
+            <Searchbar
+              placeholder="Buscar por Apellido"
               theme={{colors: {primary: '#ff8c00'}}}
               style={styles.input}
-              value={this.state.apellido_cliente}
               onChangeText={text => this.search_cliente_a(text)}
+              value={this.state.apellido_cliente}
             />
             <RNPickerSelect
               placeholder={placeholder}
@@ -516,6 +565,15 @@ class Crear_pedido extends Component {
                 },
               }}
             />
+            <View style={{width: '90%', marginLeft: '5%', marginTop: '3%'}}>
+              <Title>Nro {this.state.selected_cliente.id_cliente}</Title>
+              <Paragraph>
+                {this.state.selected_cliente.nombre +
+                  ' ' +
+                  this.state.selected_cliente.apellido}
+              </Paragraph>
+              <Paragraph>{this.state.selected_cliente.correo}</Paragraph>
+            </View>
             <Divider />
             <DatePicker
               style={{width: '90%', marginTop: '5%', marginLeft: '3%'}}
@@ -594,9 +652,9 @@ class Crear_pedido extends Component {
                 <Button
                   mode="outlined"
                   style={{
-                    width: '90%',
+                    width: '95%',
                     marginTop: '5%',
-                    marginLeft: '4%',
+                    marginLeft: '2%',
                     backgroundColor: 'black',
                   }}
                   loading={this.state.cargando}
@@ -605,7 +663,6 @@ class Crear_pedido extends Component {
                   <Icon name="feather" size={35} />
                   Seleccionar Firma
                 </Button>
-                <Text style={styles.center_view}>{this.state.file.name}</Text>
                 <TextInput
                   mode="outlined"
                   multiline={true}
@@ -615,24 +672,71 @@ class Crear_pedido extends Component {
                   value={this.state.observacion}
                   onChangeText={text => this.setState({observacion: text})}
                 />
+                <TextInput
+                  mode="outlined"
+                  label="Ingresar Dirección Despacho"
+                  theme={{colors: {primary: '#ff8c00'}}}
+                  style={styles.input}
+                  value={this.state.direccion_despacho}
+                  onChangeText={text =>
+                    this.setState({direccion_despacho: text})
+                  }
+                />
               </View>
             ) : null}
-
-            <Button
-              mode="outlined"
-              style={{
-                width: '60%',
-                marginLeft: '20%',
-                marginTop: '10%',
-                backgroundColor: '#F7B21E',
+            {this.state.id_pedido === '' ? (
+              <Button
+                mode="outlined"
+                style={{
+                  width: '90%',
+                  marginLeft: '5%',
+                  marginTop: '10%',
+                  backgroundColor: '#F7B21E',
+                  borderRadius: 10,
+                }}
+                loading={this.state.cargando}
+                theme={{colors: {primary: 'black'}}}
+                onPress={() => this.show_crear_pedido()}>
+                <Icon name="account-check-outline" size={35} />
+                Registrar Pedido
+              </Button>
+            ) : (
+              <Button
+                mode="outlined"
+                style={{
+                  width: '90%',
+                  marginLeft: '5%',
+                  marginTop: '10%',
+                  backgroundColor: '#F7B21E',
+                  borderRadius: 10,
+                }}
+                loading={this.state.cargando}
+                theme={{colors: {primary: 'black'}}}
+                onPress={() => this.show_crear_pedido()}>
+                <Icon name="account-check-outline" size={35} />
+                Actualizar Pedido
+              </Button>
+            )}
+            <AwesomeAlert
+              show={this.state.show_dialog}
+              showProgress={false}
+              title="¿Qué desea hacer con el pedido?"
+              message="Si lo finaliza podrá editar el pedido después pero no se enviará al correo de la persona y si lo envía no podrá editarlo después pero se enviará el correo"
+              closeOnTouchOutside={true}
+              closeOnHardwareBackPress={false}
+              showCancelButton={true}
+              showConfirmButton={true}
+              cancelText="Finalizar"
+              confirmText="Enviar"
+              confirmButtonColor="#DD6B55"
+              cancelButtonColor="green"
+              onCancelPressed={() => {
+                this.hide_dialog('FINALIZADO');
               }}
-              loading={this.state.cargando}
-              theme={{colors: {primary: 'black'}}}
-              onPress={() => this.crear_pedido()}>
-              <Icon name="account-check-outline" size={35} />
-              Registrar
-            </Button>
-
+              onConfirmPressed={() => {
+                this.hide_dialog('ENVIADO');
+              }}
+            />
             <Modal
               animationType="slide"
               visible={this.state.show_unidades}
@@ -733,14 +837,14 @@ class Crear_pedido extends Component {
                     <Button
                       mode="outlined"
                       style={{
-                        width: '50%',
-                        marginLeft: '25%',
-                        backgroundColor: '#2E8B57',
+                        width: '70%',
+                        marginLeft: '15%',
+                        backgroundColor: 'black',
                         borderRadius: 10,
                         marginTop: '5%',
                       }}
                       loading={this.state.cargando}
-                      theme={{colors: {primary: 'white'}}}
+                      theme={{colors: {primary: '#F7B21E'}}}
                       onPress={() => this.registrar_unidades()}>
                       <Icon name="cart" size={35} />
                       Agregar
@@ -794,12 +898,12 @@ class Crear_pedido extends Component {
                       </DataTable.Row>
                     ))}
                     <View style={styles.center_view}>
-                    <Text style={{marginTop:'5%'}}>
-                      TOTAL UNIDADES: {this.state.informacion.unidades_total}
-                    </Text>
-                    <Text>
-                      PRECIO TOTAL: {this.state.informacion.precio_total}
-                    </Text>
+                      <Text style={{marginTop: '5%'}}>
+                        TOTAL UNIDADES: {this.state.informacion.unidades_total}
+                      </Text>
+                      <Text>
+                        PRECIO TOTAL: {this.state.informacion.precio_total}
+                      </Text>
                     </View>
                     <Button
                       mode="outlined"
