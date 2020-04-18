@@ -104,6 +104,7 @@ class Editar_pedido extends Component {
   }
 
   search_referencia(value) {
+    if(Number(value)){
     this.setState({
       id_referencia: value,
       searching: true,
@@ -127,6 +128,7 @@ class Editar_pedido extends Component {
         this.setState({searching: false});
         alert(error);
       });
+    }
   }
 
   search_ref_color(value) {
@@ -241,6 +243,8 @@ class Editar_pedido extends Component {
     this.setState({cargando: true});
     const {id_cliente, date, observacion, direccion_despacho} = this.state;
     const ruta = this.state.file.uri;
+    const {usuario} = this.props;
+    let id_usuario = usuario.id_usuario;
     if (ruta !== '') {
       RNFS.readFile(ruta, 'base64') //substring(7) -> to remove the file://
         .then(res => this.setState({firma: res}));
@@ -258,6 +262,7 @@ class Editar_pedido extends Component {
           id_pedido: this.state.id_pedido,
           observacion,
           direccion: direccion_despacho,
+          id_usuario
         }), // data can be `string` or {object}!
         headers: {
           'Content-Type': 'application/json',
@@ -320,7 +325,7 @@ class Editar_pedido extends Component {
   }
   search_pedido(value) {
     this.setState({id_pedido: value});
-    if(value!==''){
+    if(Number(value)){
       this.setState({searching: true});
     fetch('http://192.168.1.86:4000/search_pedido', {
       method: 'POST',

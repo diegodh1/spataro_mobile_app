@@ -294,6 +294,7 @@ class Crear_pedido extends Component {
             id_pedido: this.state.id_pedido,
             observacion,
             direccion: direccion_despacho,
+            id_usuario
           }), // data can be `string` or {object}!
           headers: {
             'Content-Type': 'application/json',

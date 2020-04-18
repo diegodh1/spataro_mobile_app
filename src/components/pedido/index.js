@@ -49,7 +49,7 @@ class Pedido extends Component {
           <Appbar.Content title="Pedidos" subtitle="crear y editar Pedidos" />
           <TouchableWithoutFeedback onPress={this.bounce}>
           <Animatable.View ref="view">
-          <Icon name="left" size={30} color="#ff8c00" />
+          <Icon name="arrowleft" size={30} color="#ff8c00" />
           </Animatable.View>
           </TouchableWithoutFeedback>
         </Appbar.Header>

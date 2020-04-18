@@ -14,7 +14,7 @@ import { createSwitchNavigator, createAppContainer } from 'react-navigation';
 console.disableYellowBox = true;
 const AppSwitchNavigator = createSwitchNavigator({
   inicio: { screen: Login },
-  home: {screen: Home},
+  home: { screen: Home },
   Usuario: {screen: Usuario},
   Cliente: {screen: Cliente},
   Pedido: {screen: Pedido},
