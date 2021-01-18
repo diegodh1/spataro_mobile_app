@@ -87,11 +87,12 @@ class Crear_pedido extends Component {
         .then(res => res.json())
         .then(response => {
           this.setState({clientes: response, searching: false});
-          let clientes = this.state.clientes_aux;
+          let clientes = [];
           for (let i = 0; i < response.length; i++) {
             let nombre = response[i].nombre + ' ' + response[i].apellido;
-            clientes.push({label: nombre, value: response[i].id_cliente});
+            clientes.push({label: nombre, value: response[i].id_cliente, key:response[i].id_cliente});
           }
+          clientes = [...new Set(clientes)]
           this.setState({clientes_aux: clientes});
         })
         .catch(error => {
@@ -222,11 +223,12 @@ class Crear_pedido extends Component {
         .then(res => res.json())
         .then(response => {
           this.setState({clientes: response, searching: false});
-          let clientes = this.state.clientes_aux;
+          let clientes = [];
           for (let i = 0; i < response.length; i++) {
             let nombre = response[i].nombre + ' ' + response[i].apellido;
-            clientes.push({label: nombre, value: response[i].id_cliente});
+            clientes.push({label: nombre, value: response[i].id_cliente, key:response[i].id_cliente});
           }
+          clientes = [...new Set(clientes)]
           this.setState({clientes_aux: clientes});
         })
         .catch(error => {
@@ -580,7 +582,7 @@ class Crear_pedido extends Component {
               style={{width: '90%', marginTop: '5%', marginLeft: '3%'}}
               date={this.state.date}
               mode="date"
-              placeholder="seleccionar Fecha"
+              placeholder="seleccionar Fecha Despacho"
               format="YYYY/MM/DD"
               confirmBtnText="Confirm"
               cancelBtnText="Cancel"

@@ -26,13 +26,13 @@ class Menu_perfil extends Component {
       <Avatar.Image
         source={{
           uri:
-          `data:image/jpeg;base64,${usuario.foto}`,
+          `data:image/jpeg;base64,${usuario.Photo}`,
         }}
         style={styles.image}
         size={100}
       />
-      <Title style={styles.title}>{usuario.nombre}</Title>
-      <Caption style={styles.caption}>{usuario.correo}</Caption>
+      <Title style={styles.title}>{usuario.Name}</Title>
+      <Caption style={styles.caption}>{usuario.Email}</Caption>
     </View>);
   }
 }

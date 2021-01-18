@@ -28,13 +28,13 @@ import {useDispatch, useSelector} from 'react-redux';
 
 let tipo = 'ADMINISTRADOR';
 function get_perfil() {
-  const user = useSelector(state => state.reducer.user);
-  const menus = user.menus;
-  for (let i = 0; i < menus.length; i++) {
-    if (menus[i] == 'VENDEDOR') {
+  const profiles = useSelector(state => state.reducer.profiles);
+  for (let i = 0; i < profiles.length; i++) {
+    if (profiles[i].ProfileID == 'VENDEDOR') {
       tipo = 'VENDEDOR';
     } else {
       tipo = 'ADMINISTRADOR';
+      break
     }
   }
 }

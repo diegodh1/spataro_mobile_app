@@ -2,6 +2,8 @@ import {ERROR_LOGIN, SUCCESS_LOGIN} from './actions';
 
 const original_estate = {
   user: {id_usuario: ''},
+  profiles: [],
+  token: '',
   message: '',
   load: false,
 };
@@ -11,7 +13,7 @@ const reducer = (state = original_estate,action) => {
     case ERROR_LOGIN:
       return {...state, message: action.error};
     case SUCCESS_LOGIN:
-      return {...state, user: action.usuario};
+      return {...state, user: action.user, profiles: action.profiles, token: action.token};
     default:
       return state;
   }

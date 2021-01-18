@@ -29,11 +29,11 @@ class Login extends Component {
   //funcion encargada de ingresar seccion
   handleSubmit(event) {
     this.setState({cargando: true});
-    fetch('http://192.168.1.86:4000/iniciar_sesion', {
+    fetch('http://192.168.1.9:4000/user/login', {
       method: 'POST',
       body: JSON.stringify({
-        id_usuario: this.state.user,
-        passwrd: this.state.password,
+        UserID: this.state.user,
+        Password: this.state.password,
       }), // data can be `string` or {object}!
       headers: {
         'Content-Type': 'application/json',
@@ -41,38 +41,18 @@ class Login extends Component {
     })
       .then(res => res.json())
       .then(response => {
-        if (
-          response.usuario.id_usuario != '' &&
-          response.usuario.id_usuario != undefined &&
-          response.usuario.id_usuario != null
-        ) {
+        if (response.status == 200) {
           this.setState({cargando: false});
-          this.props.success_login(response.usuario);
+          this.props.success_login(response.payload.User, response.payload.Profiles, response.payload.Token);
           this.props.navigation.navigate('home');
         } else {
-          if (response.status == 200) {
-            this.setState({cargando: false});
-            this.props.error_login(
-              'error ingresando sesión, compruebe usuario y contraseña',
-            );
-            this.setState({
-              message:
-                'error ingresando sesión, compruebe usuario y contraseña',
-              show_snack: true,
-            });
-          } else {
-            this.setState({cargando: false});
-            this.props.error_login(
-              'el servidor no puede procesar la solicitud',
-            );
-            this.setState({
-              message: 'error interno del servidor',
-              show_snack: true,
-            });
-          }
+          this.setState({cargando: false});
+          this.props.error_login(response.message);
+          this.setState({message:response.message, show_snack: true,});
         }
       })
       .catch(error => {
+        this.setState({cargando: false});
         this.props.error_login('el servidor no puede procesar la solicitud');
       });
     event.preventDefault();
@@ -92,11 +72,7 @@ class Login extends Component {
     return (
       <Fragment>
         {this.state.cargando == false ? (
-          <LinearGradient
-            start={{x: 0.0, y: 0.25}}
-            end={{x: 0.5, y: 1.0}}
-            colors={['#000000', '#434343']}
-            style={{height: '100%'}}>
+          <Fragment>
             <Animatable.View
               animation="flipInY"
               iterationCount={1}
@@ -104,16 +80,15 @@ class Login extends Component {
               <View style={styles.container}>
                 <Image
                   style={styles.logo}
-                  source={require('../../public/Logo2020.png')}
+                  source={require('../../public/logo.png')}
                 />
                 <Input
                   type="text"
                   inputStyle={styles.input}
                   placeholder="  Nro de documento"
-                  placeholderTextColor="white"
                   value={this.state.user}
                   onChangeText={text => this.setUser(text)}
-                  leftIcon={<Icon name="user" size={32} color="white" />}
+                  leftIcon={<Icon name="user" size={32}/>}
                 />
                 <View style={styles.input} />
                 {this.state.show_password ? (
@@ -121,13 +96,12 @@ class Login extends Component {
                     type="text"
                     inputStyle={styles.input}
                     placeholder="  Contraseña"
-                    placeholderTextColor="white"
                     value={this.state.password}
                     onChangeText={text => this.setPassword(text)}
-                    leftIcon={<Icon name="key" size={32} color="white" />}
+                    leftIcon={<Icon name="key" size={32} />}
                     rightIcon={
                       <TouchableOpacity onPress={this.showPassword}>
-                        <Icon name="eyeo" size={32} color="white" />
+                        <Icon name="eyeo" size={32}/>
                       </TouchableOpacity>
                     }
                   />
@@ -136,22 +110,32 @@ class Login extends Component {
                     type="text"
                     inputStyle={styles.input}
                     placeholder="  Contraseña"
-                    placeholderTextColor="white"
                     value={this.state.password}
                     onChangeText={text => this.setPassword(text)}
                     secureTextEntry={true}
-                    leftIcon={<Icon name="key" size={32} color="white" />}
+                    leftIcon={<Icon name="key" size={32} />}
                     rightIcon={
                       <TouchableOpacity onPress={this.showPassword}>
-                        <Icon name="eyeo" size={32} color="white" />
+                        <Icon name="eyeo" size={32}/>
                       </TouchableOpacity>
                     }
                   />
                 )}
+                <LinearGradient
+                  start={{x: 0.0, y: 0.25}}
+                  end={{x: 0.5, y: 1.0}}
+                  colors={['#ee0202', '#ee0202']}
+                  style={styles.linearGradient}>
+                  <TouchableOpacity onPress={this.handleSubmit}>
+                    <Text style={styles.buttonText}>
+                      Bienvenido a Calzado Rómulo
+                    </Text>
+                  </TouchableOpacity>
+                </LinearGradient>
+                <Text style={styles.password}>¿Olvidó su Contraseña?</Text>
                 <Snackbar
                   visible={this.state.show_snack}
                   onDismiss={this.onDismissSnackBar}
-                  style={{backgroundColor: 'red'}}
                   theme={{colors: {accent: 'white'}}}
                   action={{
                     label: 'OK',
@@ -161,21 +145,9 @@ class Login extends Component {
                   }}>
                   {this.state.message}
                 </Snackbar>
-                <LinearGradient
-                  start={{x: 0.0, y: 0.25}}
-                  end={{x: 0.5, y: 1.0}}
-                  colors={['#F2994A', '#F2C94C']}
-                  style={styles.linearGradient}>
-                  <TouchableOpacity onPress={this.handleSubmit}>
-                    <Text style={styles.buttonText}>
-                      Ingresar a Spataro Napoli
-                    </Text>
-                  </TouchableOpacity>
-                </LinearGradient>
-                <Text style={styles.password}>¿Olvidó su Contraseña?</Text>
               </View>
             </Animatable.View>
-          </LinearGradient>
+          </Fragment>
         ) : (
           <Modal
             visible={this.state.cargando}
@@ -210,26 +182,25 @@ export default connect(
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: '40%',
+    marginTop: '35%',
     alignItems: 'center',
     backgroundColor: 'white',
     backgroundColor: 'transparent',
   },
   input: {
     margin: '3%',
-    color: 'white',
   },
   password: {
     fontSize: 18,
     fontFamily: 'Gill Sans',
     marginTop: '6%',
-    color: '#F2C94C',
+    color: 'black',
   },
   logo: {
     width: '90%',
     height: '25%',
     resizeMode: 'stretch',
-    marginBottom: '10%',
+    marginBottom: '15%',
     backgroundColor: 'transparent',
   },
   loader: {
@@ -251,7 +222,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: '600',
     margin: 10,
-    color: 'black',
+    color: 'white',
     backgroundColor: 'transparent',
   },
 });

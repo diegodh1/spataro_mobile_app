@@ -26,14 +26,17 @@ class Crear_usuario extends Component {
       name: '',
       last_name: '',
       email: '',
-      menus: [],
+      menus: [
+        {id_menu: 'ADMINISTRADOR', activo: 0},
+        {id_menu: 'VENDEDOR', activo: 0},
+      ],
       visible_menu: false,
       show_error_doc: false,
       show_error_pass: false,
       show_error_name: false,
       show_error_last: false,
       show_error_email: false,
-      filePath: {data: ''},
+      filePath: '',
       cargando: false,
       show_snackbar: false,
       mensaje: '',
@@ -65,32 +68,14 @@ class Crear_usuario extends Component {
         console.log('User tapped custom button: ', response.customButton);
         alert(response.customButton);
       } else {
-        let source = response;
         // You can also display the image using data:
         // let source = { uri: 'data:image/jpeg;base64,' + response.data };
         this.setState({
-          filePath: source,
+          filePath: response.data,
         });
       }
     });
   };
-
-  componentDidMount() {
-    fetch('http://192.168.1.86:4000/get_menus', {
-      method: 'POST',
-      body: JSON.stringify({}), // data can be `string` or {object}!
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(res => res.json())
-      .then(response => {
-        this.setState({menus: response});
-      })
-      .catch(error => {
-        alert(error);
-      });
-  }
 
   _menu_change = id_menu => {
     this.refs[id_menu].pulse();
@@ -106,56 +91,62 @@ class Crear_usuario extends Component {
   };
   _onDismissSnackBar = () => this.setState({show_snackbar: false});
   comprobar_form = () => {
-    if (!Number(this.state.id_usuario)) this.setState({show_error_doc: true});
-    if (this.state.passwrd.length < 6) this.setState({show_error_pass: true});
+    this.setState({
+      show_error_doc: false,
+      show_error_pass: false,
+      show_error_name: false,
+      show_error_email: false,
+    });
+    if (this.state.id_usuario.length < 1) this.setState({show_error_doc: true});
+    if (this.state.passwrd.length < 1) this.setState({show_error_pass: true});
     if (this.state.name.length < 1) this.setState({show_error_name: true});
-    if (this.state.last_name.length < 1) this.setState({show_error_last: true});
     if (!this.state.email.includes('@'))
       this.setState({show_error_email: true});
-    if (Number(this.state.id_usuario)) this.setState({show_error_doc: false});
-    if (this.state.passwrd.length > 6) this.setState({show_error_pass: false});
-    if (this.state.name.length > 1) this.setState({show_error_name: false});
-    if (this.state.last_name.length > 1)
-      this.setState({show_error_last: false});
-    if (this.state.email.includes('@'))
-      this.setState({show_error_email: false});
     setTimeout(() => {
       const {
         show_error_doc,
         show_error_pass,
         show_error_name,
-        show_error_last,
         show_error_email,
       } = this.state;
       if (
         !show_error_doc &&
         !show_error_pass &&
         !show_error_name &&
-        !show_error_last &&
         !show_error_email
       ) {
         this.setState({cargando: true});
-        const {menus} = this.state;
-        const filter = menus.filter(x => x.activo === 1);
-        fetch('http://192.168.1.86:4000/crear_usuario', {
+        const menu_aux = this.state.menus.filter(x => x.activo == 1);
+        let menus_user = [];
+        for (let i = 0; i < menu_aux.length; i++) {
+          menus_user.push({
+            UserID: this.state.id_usuario,
+            ProfileID: menu_aux[i].id_menu,
+            Status: true,
+          });
+        }
+        fetch('http://192.168.1.9:4000/user/create', {
           method: 'POST',
           body: JSON.stringify({
-            id_usuario: this.state.id_usuario,
-            id_tipo_doc: 'CÉDULA',
-            nombre: this.state.name,
-            apellido: this.state.last_name,
-            correo: this.state.email,
-            passwrd: this.state.passwrd,
-            foto: this.state.filePath.data,
-            menus: filter,
+            User: {
+              UserID: this.state.id_usuario,
+              Name: this.state.name,
+              LastName: this.state.last_name,
+              Email: this.state.email,
+              Password: this.state.passwrd,
+              Status: true,
+              Photo: this.state.filePath,
+            },
+            Profiles: menus_user,
           }), // data can be `string` or {object}!
           headers: {
-            'Content-Type': 'application/json',
+            Authorization: 'Bearer ' + this.props.token,
+            'Content-Type': 'multipart/form-data',
           },
         })
           .then(res => res.json())
           .then(response => {
-            if (response.status === 200) {
+            if (response.status === 201) {
               this.setState({
                 id_usuario: '',
                 id_tipo_doc: '',
@@ -163,7 +154,7 @@ class Crear_usuario extends Component {
                 last_name: '',
                 email: '',
                 passwrd: '',
-                foto: {},
+                filePath: '',
                 cargando: false,
                 show_snackbar: true,
                 mensaje: 'Registro realizado con éxito',
@@ -195,7 +186,7 @@ class Crear_usuario extends Component {
         <ScrollView>
           <TextInput
             mode="outlined"
-            label="Nro. Documento"
+            label="ID Usuario"
             theme={{colors: {primary: '#ff8c00'}}}
             style={styles.input}
             value={this.state.id_usuario}
@@ -203,7 +194,7 @@ class Crear_usuario extends Component {
           />
           {this.state.show_error_doc ? (
             <HelperText type="error" visible={this.state.show_error_doc}>
-              El numero de documento solo contiene numeros
+              El ID de usuario no puede estar vacio
             </HelperText>
           ) : null}
           <TextInput
@@ -216,7 +207,7 @@ class Crear_usuario extends Component {
           />
           {this.state.show_error_pass ? (
             <HelperText type="error" visible={this.state.show_error_pass}>
-              La contraseña debe ser mayor a 6 caracteres
+              La contraseña no puede estar vacia
             </HelperText>
           ) : null}
           <TextInput
@@ -347,11 +338,15 @@ class Crear_usuario extends Component {
 const mapStateToProps = state => {
   return {
     usuario: state.reducer.user,
+    token: state.reducer.token,
   };
 };
 const mapDispatchToProps = {};
 
-export default connect(mapStateToProps, mapDispatchToProps)(Crear_usuario);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(Crear_usuario);
 
 const styles = StyleSheet.create({
   text: {
