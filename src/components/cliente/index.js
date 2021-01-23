@@ -39,11 +39,11 @@ class Cliente extends Component {
     return (
       <Fragment>
         <Appbar.Header  style={styles.header}>
-          <Icon name="bars" size={40} color="#ff8c00" onPress={() => this.props.navigation.openDrawer()} />
+          <Icon name="bars" size={40} color="white" onPress={() => this.props.navigation.openDrawer()} />
           <Appbar.Content title="Clientes" subtitle="crear y editar clientes" />
           <TouchableWithoutFeedback onPress={this.bounce}>
           <Animatable.View ref="view">
-          <Icon name="left" size={30} color="#ff8c00" />
+          <Icon name="left" size={30} color="white" />
           </Animatable.View>
           </TouchableWithoutFeedback>
         </Appbar.Header>
@@ -73,10 +73,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   header: {
-    backgroundColor: '#000000',
+    backgroundColor: '#e60000',
   },
   bottom: {
-    backgroundColor: '#000000',
+    backgroundColor: '#e60000',
   },
   activo:{
     color: '#F2994A',

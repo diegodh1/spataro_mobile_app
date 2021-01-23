@@ -187,7 +187,7 @@ class Crear_usuario extends Component {
           <TextInput
             mode="outlined"
             label="ID Usuario"
-            theme={{colors: {primary: '#ff8c00'}}}
+            theme={{colors: {primary: 'red'}}}
             style={styles.input}
             value={this.state.id_usuario}
             onChangeText={text => this.setState({id_usuario: text})}
@@ -200,7 +200,7 @@ class Crear_usuario extends Component {
           <TextInput
             mode="outlined"
             label="Contraseña"
-            theme={{colors: {primary: '#ff8c00'}}}
+            theme={{colors: {primary: 'red'}}}
             style={styles.input}
             value={this.state.passwrd}
             onChangeText={text => this.setState({passwrd: text})}
@@ -213,7 +213,7 @@ class Crear_usuario extends Component {
           <TextInput
             mode="outlined"
             label="Nombre"
-            theme={{colors: {primary: '#ff8c00'}}}
+            theme={{colors: {primary: 'red'}}}
             style={styles.input}
             value={this.state.name}
             onChangeText={text => this.setState({name: text})}
@@ -226,7 +226,7 @@ class Crear_usuario extends Component {
           <TextInput
             mode="outlined"
             label="Apellido"
-            theme={{colors: {primary: '#ff8c00'}}}
+            theme={{colors: {primary: 'red'}}}
             style={styles.input}
             value={this.state.last_name}
             onChangeText={text => this.setState({last_name: text})}
@@ -239,7 +239,7 @@ class Crear_usuario extends Component {
           <TextInput
             mode="outlined"
             label="Correo"
-            theme={{colors: {primary: '#ff8c00'}}}
+            theme={{colors: {primary: 'red'}}}
             style={styles.input}
             value={this.state.email}
             onChangeText={text => this.setState({email: text})}
@@ -252,7 +252,7 @@ class Crear_usuario extends Component {
           <List.Section title="Información Extra">
             <List.Accordion
               title="Permisos"
-              theme={{colors: {primary: '#ff8c00'}}}
+              theme={{colors: {primary: 'red'}}}
               left={props => <List.Icon {...props} icon="folder" />}>
               {this.state.menus.map(row => (
                 <TouchableWithoutFeedback
@@ -294,7 +294,7 @@ class Crear_usuario extends Component {
           <Button
             mode="outlined"
             loading={this.state.cargando}
-            theme={{colors: {primary: '#ff8c00'}}}
+            theme={{colors: {primary: 'green'}}}
             onPress={() => this.comprobar_form()}>
             <Icon name="account-check-outline" size={35} />
             Registrar usuario

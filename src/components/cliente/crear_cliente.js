@@ -225,7 +225,7 @@ class Crear_cliente extends Component {
             <TextInput
               mode="outlined"
               label="Nro. Documento"
-              theme={{colors: {primary: '#ff8c00'}}}
+              theme={{colors: {primary: 'red'}}}
               style={styles.input}
               value={this.state.id_usuario_aux}
               onChangeText={text => this.setState({id_usuario_aux: text})}
@@ -238,7 +238,7 @@ class Crear_cliente extends Component {
             <TextInput
               mode="outlined"
               label="Nombre"
-              theme={{colors: {primary: '#ff8c00'}}}
+              theme={{colors: {primary: 'red'}}}
               style={styles.input}
               value={this.state.name}
               onChangeText={text => this.setState({name: text})}
@@ -251,7 +251,7 @@ class Crear_cliente extends Component {
             <TextInput
               mode="outlined"
               label="Apellido"
-              theme={{colors: {primary: '#ff8c00'}}}
+              theme={{colors: {primary: 'red'}}}
               style={styles.input}
               value={this.state.last_name}
               onChangeText={text => this.setState({last_name: text})}
@@ -264,7 +264,7 @@ class Crear_cliente extends Component {
             <TextInput
               mode="outlined"
               label="Correo"
-              theme={{colors: {primary: '#ff8c00'}}}
+              theme={{colors: {primary: 'red'}}}
               style={styles.input}
               value={this.state.email}
               onChangeText={text => this.setState({email: text})}
@@ -277,7 +277,7 @@ class Crear_cliente extends Component {
             <TextInput
               mode="outlined"
               label="Celular"
-              theme={{colors: {primary: '#ff8c00'}}}
+              theme={{colors: {primary: 'red'}}}
               style={styles.input}
               value={this.state.cell}
               onChangeText={text => this.setState({cell: text})}
@@ -290,7 +290,7 @@ class Crear_cliente extends Component {
             <TextInput
               mode="outlined"
               label="Teléfono"
-              theme={{colors: {primary: '#ff8c00'}}}
+              theme={{colors: {primary: 'red'}}}
               style={styles.input}
               value={this.state.tel}
               onChangeText={text => this.setState({tel: text})}
@@ -303,7 +303,7 @@ class Crear_cliente extends Component {
             <TextInput
               mode="outlined"
               label="Dirección"
-              theme={{colors: {primary: '#ff8c00'}}}
+              theme={{colors: {primary: 'red'}}}
               style={styles.input}
               value={this.state.dir}
               onChangeText={text => this.setState({dir: text})}
@@ -319,10 +319,9 @@ class Crear_cliente extends Component {
               style={{
                 width: '95%',
                 marginTop: '5%',
-                backgroundColor: '#F7B21E',
                 marginLeft: '2%',
               }}
-              theme={{colors: {primary: 'black'}}}
+              theme={{colors: {primary: 'green'}}}
               onPress={() => this.select_file()}>
               <Icon name="paperclip" size={25} />
               Adjuntar Documento
@@ -334,12 +333,12 @@ class Crear_cliente extends Component {
                 marginLeft: '2%',
                 marginTop: '5%',
                 marginBottom: '5%',
-                backgroundColor: 'black',
+                backgroundColor: '#e60000',
                 borderRadius: 15,
                 
               }}
               loading={this.state.cargando}
-              theme={{colors: {primary: '#F7B21E'}}}
+              theme={{colors: {primary: 'white'}}}
               onPress={() => this.comprobar_form()}>
               <Icon name="check" size={30} />
               Enviar Petición

@@ -65,19 +65,19 @@ function MyDrawer() {
         <Drawer.Navigator
           drawerContent={props => <CustomDrawerContent {...props} />}
           drawerStyle={{
-            backgroundColor: '#252424',
+            backgroundColor: 'white',
             width: 260,
           }}
           drawerContentOptions={{
-            activeTintColor: '#ff8c00',
-            inactiveTintColor: '#CDCDCD',
+            activeTintColor: 'red',
+            inactiveTintColor: 'black',
           }}>
           <Drawer.Screen
             name="Pedido"
             component={Pedido}
             options={{
               drawerIcon: config => (
-                <Icon name="carryout" size={23} color="white" />
+                <Icon name="carryout" size={23} color="black" />
               ),
             }}
           />
@@ -86,7 +86,7 @@ function MyDrawer() {
             component={Usuario}
             options={{
               drawerIcon: config => (
-                <Icon name="user" size={23} color="white" />
+                <Icon name="user" size={23} color="black" />
               ),
             }}
           />
@@ -95,7 +95,7 @@ function MyDrawer() {
             component={Cliente}
             options={{
               drawerIcon: config => (
-                <Icon name="smileo" size={23} color="white" />
+                <Icon name="smileo" size={23} color="black" />
               ),
             }}
           />
@@ -104,7 +104,7 @@ function MyDrawer() {
             component={Referencia}
             options={{
               drawerIcon: config => (
-                <Icon name="file1" size={23} color="white" />
+                <Icon name="file1" size={23} color="black" />
               ),
             }}
           />

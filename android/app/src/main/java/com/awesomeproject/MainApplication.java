@@ -13,6 +13,7 @@ import com.oblador.vectoricons.VectorIconsPackage;
 import com.BV.LinearGradient.LinearGradientPackage;
 import io.github.elyx0.reactnativedocumentpicker.DocumentPickerPackage; // Import package 
 import com.rnfs.RNFSPackage;
+import io.realm.react.RealmReactPackage;
 
 public class MainApplication extends Application implements ReactApplication {
 

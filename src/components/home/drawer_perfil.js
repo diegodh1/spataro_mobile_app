@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   title: {
     marginTop: 15,
     fontWeight: 'bold',
-    color:'#CDCDCD'
+    color:'black'
   },
   image:{
     marginTop:'6%',

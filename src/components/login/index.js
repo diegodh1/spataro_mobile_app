@@ -8,6 +8,8 @@ import LinearGradient from 'react-native-linear-gradient';
 import {Modal} from 'react-native-paper';
 import * as Animatable from 'react-native-animatable';
 import {Snackbar} from 'react-native-paper';
+var Realm = require('realm');
+let realm;
 
 class Login extends Component {
   //declaramos el constructor
@@ -20,15 +22,68 @@ class Login extends Component {
       show_password: false,
       show_snack: false,
       message: '',
+      realm: null,
     };
     this.handleSubmit = this.handleSubmit.bind(this);
     this.setUser = this.setUser.bind(this);
     this.setPassword = this.setPassword.bind(this);
     this.showPassword = this.showPassword.bind(this);
+    realm = new Realm({
+      schema: [
+        {
+          name: 'UserApp',
+          properties: {
+            userID: { type: 'int', default: 0 },
+            username: 'string',
+            password: 'string',
+          },
+        },
+      ],
+    });
   }
-  //funcion encargada de ingresar seccion
-  handleSubmit(event) {
+
+  componentDidMount(){
     this.setState({cargando: true});
+    let users = realm.objects('UserApp')
+    if(users.length > 0){
+      let userTemp  = users[users.length - 1]
+      fetch('http://192.168.1.9:4000/user/login', {
+      method: 'POST',
+      body: JSON.stringify({
+        UserID: userTemp.username,
+        Password: userTemp.password,
+      }), // data can be `string` or {object}!
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(res => res.json())
+      .then(response => {
+        if (response.status == 200) {
+          this.setState({cargando: false});
+          this.props.success_login(
+            response.payload.User,
+            response.payload.Profiles,
+            response.payload.Token,
+          );
+          this.props.navigation.navigate('home');
+        } else {
+          this.setState({cargando: false});
+          this.props.error_login(response.message);
+          this.setState({message: response.message, show_snack: true});
+        }
+      })
+      .catch(error => {
+        this.setState({cargando: false});
+        this.props.error_login('el servidor no puede procesar la solicitud');
+      });
+    }
+    else{
+      this.setState({cargando: false});
+    }
+  }
+
+  makeRequest = () =>{
     fetch('http://192.168.1.9:4000/user/login', {
       method: 'POST',
       body: JSON.stringify({
@@ -42,19 +97,38 @@ class Login extends Component {
       .then(res => res.json())
       .then(response => {
         if (response.status == 200) {
+          var userApp = realm.objects('UserApp');
+          var ID = 1
+          realm.write(() => {
+            realm.delete(userApp);
+            realm.create('UserApp', {
+              userID: ID,
+              username: this.state.user,
+              password: this.state.password,
+            });
+          });
           this.setState({cargando: false});
-          this.props.success_login(response.payload.User, response.payload.Profiles, response.payload.Token);
+          this.props.success_login(
+            response.payload.User,
+            response.payload.Profiles,
+            response.payload.Token,
+          );
           this.props.navigation.navigate('home');
         } else {
           this.setState({cargando: false});
           this.props.error_login(response.message);
-          this.setState({message:response.message, show_snack: true,});
+          this.setState({message: response.message, show_snack: true});
         }
       })
       .catch(error => {
         this.setState({cargando: false});
         this.props.error_login('el servidor no puede procesar la solicitud');
       });
+  }
+  //funcion encargada de ingresar seccion
+  handleSubmit(event) {
+    this.setState({cargando: true});
+    this.makeRequest();
     event.preventDefault();
   }
   setUser(value) {
@@ -88,7 +162,7 @@ class Login extends Component {
                   placeholder="  Nro de documento"
                   value={this.state.user}
                   onChangeText={text => this.setUser(text)}
-                  leftIcon={<Icon name="user" size={32}/>}
+                  leftIcon={<Icon name="user" size={32} />}
                 />
                 <View style={styles.input} />
                 {this.state.show_password ? (
@@ -101,7 +175,7 @@ class Login extends Component {
                     leftIcon={<Icon name="key" size={32} />}
                     rightIcon={
                       <TouchableOpacity onPress={this.showPassword}>
-                        <Icon name="eyeo" size={32}/>
+                        <Icon name="eyeo" size={32} />
                       </TouchableOpacity>
                     }
                   />
@@ -116,7 +190,7 @@ class Login extends Component {
                     leftIcon={<Icon name="key" size={32} />}
                     rightIcon={
                       <TouchableOpacity onPress={this.showPassword}>
-                        <Icon name="eyeo" size={32}/>
+                        <Icon name="eyeo" size={32} />
                       </TouchableOpacity>
                     }
                   />
