@@ -27,8 +27,8 @@ class Crear_usuario extends Component {
       last_name: '',
       email: '',
       menus: [
-        {id_menu: 'ADMINISTRADOR', activo: 0},
-        {id_menu: 'VENDEDOR', activo: 0},
+        {id_menu: 'ADMINISTRADOR', activo: true},
+        {id_menu: 'VENDEDOR', activo: false},
       ],
       visible_menu: false,
       show_error_doc: false,
@@ -81,10 +81,10 @@ class Crear_usuario extends Component {
     this.refs[id_menu].pulse();
     const menu_aux = this.state.menus;
     for (let i = 0; i < menu_aux.length; i++) {
-      if (menu_aux[i].id_menu === id_menu && menu_aux[i].activo === 0) {
-        menu_aux[i].activo = 1;
-      } else if (menu_aux[i].id_menu === id_menu && menu_aux[i].activo === 1) {
-        menu_aux[i].activo = 0;
+      if (menu_aux[i].id_menu === id_menu && menu_aux[i].activo === false) {
+        menu_aux[i].activo = true;
+      } else if (menu_aux[i].id_menu === id_menu && menu_aux[i].activo === true) {
+        menu_aux[i].activo = false;
       }
     }
     this.setState({menus: menu_aux});
@@ -116,13 +116,13 @@ class Crear_usuario extends Component {
         !show_error_email
       ) {
         this.setState({cargando: true});
-        const menu_aux = this.state.menus.filter(x => x.activo == 1);
+        const menu_aux = this.state.menus.filter(x => x.activo == true);
         let menus_user = [];
         for (let i = 0; i < menu_aux.length; i++) {
           menus_user.push({
             UserID: this.state.id_usuario,
             ProfileID: menu_aux[i].id_menu,
-            Status: true,
+            Status: menu_aux[i].activo,
           });
         }
         fetch('http://192.168.1.9:4000/user/create', {
@@ -140,8 +140,8 @@ class Crear_usuario extends Component {
             Profiles: menus_user,
           }), // data can be `string` or {object}!
           headers: {
-            Authorization: 'Bearer ' + this.props.token,
-            'Content-Type': 'multipart/form-data',
+            'Authorization': 'Bearer ' + this.props.token,
+            'Content-Type': 'application/json',
           },
         })
           .then(res => res.json())
@@ -262,7 +262,7 @@ class Crear_usuario extends Component {
                       key={row.id_menu}
                       title={row.id_menu}
                       left={props =>
-                        row.activo === 0 ? (
+                        row.activo === false ? (
                           <List.Icon
                             {...props}
                             icon="close-circle-outline"

@@ -19,11 +19,6 @@ class Cliente extends Component {
           title: 'Crear Cliente',
           icon: props => <Icon name="adduser" size={25} color="white" />,
         },
-        {
-          key: 'editar',
-          title: 'Editar Cliente',
-          icon: props => <Icon name="edit" size={25} color="white" />,
-        },
       ],
     };
     this.bounce = this.bounce.bind(this);
@@ -38,7 +33,6 @@ class Cliente extends Component {
   _handleIndexChange = index => this.setState({index});
   _renderScene = BottomNavigation.SceneMap({
     crear: Crear_cliente,
-    editar: Editar_cliente,
   });
   render() {
     const {usuario} = this.props;
@@ -53,16 +47,7 @@ class Cliente extends Component {
           </Animatable.View>
           </TouchableWithoutFeedback>
         </Appbar.Header>
-        <BottomNavigation
-          barStyle={styles.bottom}
-          activeColor='#ff8c00'
-          inactiveColor='#CDCDCD'
-          shifting={true}
-          sceneAnimationEnabled ={true}
-          navigationState={this.state}
-          onIndexChange={this._handleIndexChange}
-          renderScene={this._renderScene}
-        />
+        <Crear_cliente/>
       </Fragment>
     );
   }

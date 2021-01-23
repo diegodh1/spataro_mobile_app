@@ -24,6 +24,9 @@ import {
   FAB,
   ActivityIndicator,
 } from 'react-native-paper';
+import RNFS from 'react-native-fs';
+import DocumentPicker from 'react-native-document-picker';
+import FormData from 'form-data';
 
 class Crear_cliente extends Component {
   constructor(props) {
@@ -34,13 +37,26 @@ class Crear_cliente extends Component {
       name: '',
       last_name: '',
       email: '',
+      cell: '',
+      tel: '',
+      dir: '',
+      files: [],
       activo: false,
-      tipos_doc: [],
+      tipos_doc: [
+        'NIT',
+        'CÉDULA',
+        'CÉDULA EXTRANJERA',
+        'TARJETA DE IDENTIDAD',
+        'RUT',
+      ],
       visible_menu: false,
       show_error_doc: false,
       show_error_name: false,
       show_error_last: false,
       show_error_email: false,
+      show_error_cell: false,
+      show_error_tel: false,
+      show_error_dir: false,
       cargando: false,
       searching: false,
       show_snackbar: false,
@@ -60,71 +76,6 @@ class Crear_cliente extends Component {
       direcciones: [],
       telefonos: [],
     };
-    this.registrar_direccion = this.registrar_direccion.bind(this);
-    this.delete_direccion = this.delete_direccion.bind(this);
-    this.registrar_telefono = this.registrar_telefono.bind(this);
-    this.delete_telefonos = this.delete_telefonos.bind(this);
-  }
-
-  componentDidMount() {
-    fetch('http://192.168.1.86:4000/get_documentos', {
-      method: 'POST',
-      body: JSON.stringify({}), // data can be `string` or {object}!
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        this.setState({tipos_doc: response});
-      })
-      .catch((error) => {
-        alert(error);
-      });
-  }
-
-  search_ciudad(value) {
-    this.setState({id_ciudad: value, searching: true});
-
-    fetch('http://192.168.1.86:4000/get_ciudades', {
-      method: 'POST',
-      body: JSON.stringify({
-        id_ciudad: value,
-      }), // data can be `string` or {object}!
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        this.setState({ciudades: response, searching: false});
-      })
-      .catch((error) => {
-        this.setState({searching: false});
-        alert(error);
-      });
-  }
-
-  search_pais(value) {
-    this.setState({id_pais: value, searching: true});
-
-    fetch('http://192.168.1.86:4000/get_paises', {
-      method: 'POST',
-      body: JSON.stringify({
-        id_pais: value,
-      }), // data can be `string` or {object}!
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        this.setState({paises: response, searching: false});
-      })
-      .catch((error) => {
-        this.setState({searching: false});
-        alert(error);
-      });
   }
 
   handleSelectItem(item, index) {
@@ -132,141 +83,152 @@ class Crear_cliente extends Component {
     onDropdownClose();
     console.log(item);
   }
-  _showModal_ciudad = () => this.setState({ciudad_open: true});
-  _hideModal_ciudad = () => this.setState({ciudad_open: false});
-  _showModal_pais = () => this.setState({pais_open: true});
-  _hideModal_pais = () => this.setState({pais_open: false});
-  _showModal_direccion = () => this.setState({direccion_open: true});
-  _hideModal_direccion = () => this.setState({direccion_open: false});
-  _showModal_telefono = () => this.setState({telefono_open: true});
-  _hideModal_telefono = () => this.setState({telefono_open: false});
 
   _onDismissSnackBar = () => this.setState({show_snackbar: false});
 
   comprobar_form = () => {
+    this.setState({
+      show_error_doc: false,
+      show_error_name: false,
+      show_error_last: false,
+      show_error_email: false,
+      show_error_cell: false,
+      show_error_tel: false,
+      show_error_dir: false,
+    });
+
     if (!Number(this.state.id_usuario_aux))
       this.setState({show_error_doc: true});
     if (this.state.name.length < 1) this.setState({show_error_name: true});
     if (this.state.last_name.length < 1) this.setState({show_error_last: true});
     if (!this.state.email.includes('@'))
       this.setState({show_error_email: true});
-    if (Number(this.state.id_usuario_aux))
-      this.setState({show_error_doc: false});
-    if (this.state.name.length > 1) this.setState({show_error_name: false});
-    if (this.state.last_name.length > 1)
-      this.setState({show_error_last: false});
-    if (this.state.email.includes('@'))
-      this.setState({show_error_email: false});
+    if (!Number(this.state.cell)) this.setState({show_error_cell: true});
+    if (!Number(this.state.tel)) this.setState({show_error_tel: true});
+    if (this.state.dir.length < 6) this.setState({show_error_dir: true});
+
     setTimeout(() => {
       const {
         show_error_doc,
         show_error_name,
         show_error_last,
         show_error_email,
+        show_error_cell,
+        show_error_tel,
+        show_error_dir,
       } = this.state;
       if (
         !show_error_doc &&
         !show_error_name &&
         !show_error_last &&
-        !show_error_email
+        !show_error_email &&
+        !show_error_cell &&
+        !show_error_tel &&
+        !show_error_dir
       ) {
         this.setState({cargando: true});
-        fetch('http://192.168.1.86:4000/crear_cliente', {
+        var formData = new FormData();
+        formData.append('tipoDoc', this.state.id_tipo_doc);
+        formData.append('nroDoc', this.state.id_usuario_aux);
+        formData.append('name', this.state.name);
+        formData.append('lastName', this.state.last_name);
+        formData.append('email', this.state.email);
+        formData.append('cellphone', this.state.cell);
+        formData.append('phone', this.state.tel);
+        formData.append('dir', this.state.dir);
+        this.state.files.forEach((item, i) => {
+          formData.append("upload[]", item);
+        });
+
+        fetch('http://192.168.1.9:4000/client/create', {
           method: 'POST',
-          body: JSON.stringify({
-            id_cliente: this.state.id_usuario_aux,
-            id_tipo_doc: this.state.id_tipo_doc,
-            nombre: this.state.name,
-            apellido: this.state.last_name,
-            correo: this.state.email,
-            direcciones: this.state.direcciones,
-            telefonos: this.state.telefonos,
-          }), // data can be `string` or {object}!
+          body: formData, // data can be `string` or {object}!
           headers: {
-            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + this.props.token,
+            'Content-Type': 'multipart/form-data',
           },
         })
-          .then((res) => res.json())
-          .then((response) => {
+          .then(res => res.json())
+          .then(response => {
             if (response.status === 200) {
               this.setState({
-                mensaje: 'Registro realizado con éxito',
+                mensaje: response.message,
                 show_snackbar: true,
                 id_usuario_aux: '',
                 name: '',
                 last_name: '',
                 email: '',
-                direcciones: [],
-                telefonos: [],
-                cargando: false
+                cargando: false,
+                cell:'',
+                tel:'',
+                dir:''
               });
             } else {
               alert(response.message);
-              this.setState({mensaje: response.message,cargando: false});
+              this.setState({mensaje: response.message, cargando: false});
             }
           })
-          .catch((error) => {
-            alert(error);
-            this.setState({show_snackbar: true, mensaje: error,cargando: false});
+          .catch(error => {
+            this.setState({
+              show_snackbar: true,
+              mensaje: error.text(),
+              cargando: false,
+            });
           });
       }
     }, 100);
   };
-  registrar_direccion() {
-    if (this.state.id_pais.length > 2 && this.state.id_ciudad.length > 2 && this.state.id_direccion.length>1) {
-      this.setState({error_direccion_tel: false});
-      this.refs['direccion'].rubberBand();
-      let {id_direccion, direcciones} = this.state;
-      direcciones.push({id_pais: this.state.id_pais, id_ciudad: this.state.id_ciudad, direccion: id_direccion});
-      this.setState({direcciones: direcciones});
-    } else {
-      this.setState({error_direccion_tel: true});
+
+  async select_file() {
+    try {
+      const results  = await DocumentPicker.pickMultiple({
+        type: [DocumentPicker.types.allFiles],
+      });
+      let resp = []
+      for (const res of results) {
+        resp.push(res);
+      }
+      this.setState({files: resp});
+    } catch (err) {
+      if (DocumentPicker.isCancel(err)) {
+        // User cancelled the picker, exit any dialogs or menus and move on
+      } else {
+        throw err;
+      }
     }
-  }
-  delete_direccion(dir) {
-    let {direcciones} = this.state;
-    direcciones = direcciones.filter((x) => x.direccion !== dir);
-    this.setState({direcciones: direcciones});
   }
 
-  registrar_telefono() {
-    if (this.state.id_pais.length > 2 && this.state.id_ciudad.length > 2 && this.state.id_telefono.length>1) {
-      this.setState({error_direccion_tel: false});
-      this.refs['telefono'].rubberBand();
-      let {id_telefono, telefonos} = this.state;
-      telefonos.push({id_pais: this.state.id_pais, id_ciudad: this.state.id_ciudad, telefono: id_telefono});
-      this.setState({telefonos: telefonos});
-    } else {
-      this.setState({error_direccion_tel: true});
-    }
-  }
-  delete_telefonos(tel) {
-    let {telefonos} = this.state;
-    telefonos = telefonos.filter((x) => x.telefono !== tel);
-    this.setState({telefonos: telefonos});
-  }
   render() {
     const {usuario} = this.props;
     return (
-      <SafeAreaView>
+      <SafeAreaView style={styles.containerS}>
         <ScrollView>
-          <View style={{height: '100%'}}>
-            <Picker
-              selectedValue={this.state.id_tipo_doc}
-              onValueChange={(itemValue, itemIndex) =>
-                this.setState({id_tipo_doc: itemValue})
-              }>
-              {this.state.tipos_doc.map((row) => (
-                <Picker.Item label={row.id_tipo_doc} value={row.id_tipo_doc} />
-              ))}
-            </Picker>
+          <View style={{height: '100%', marginTop: '2%'}}>
+            <View
+              style={{
+                borderWidth: 1,
+                borderColor: 'gray',
+                marginLeft: '2%',
+                marginRight: '3%',
+                borderRadius: 4,
+              }}>
+              <Picker
+                selectedValue={this.state.id_tipo_doc}
+                onValueChange={(itemValue, itemIndex) =>
+                  this.setState({id_tipo_doc: itemValue})
+                }>
+                {this.state.tipos_doc.map(row => (
+                  <Picker.Item label={row} value={row} />
+                ))}
+              </Picker>
+            </View>
             <TextInput
               mode="outlined"
               label="Nro. Documento"
               theme={{colors: {primary: '#ff8c00'}}}
               style={styles.input}
               value={this.state.id_usuario_aux}
-              onChangeText={(text) => this.setState({id_usuario_aux: text})}
+              onChangeText={text => this.setState({id_usuario_aux: text})}
             />
             {this.state.show_error_doc ? (
               <HelperText type="error" visible={this.state.show_error_doc}>
@@ -279,7 +241,7 @@ class Crear_cliente extends Component {
               theme={{colors: {primary: '#ff8c00'}}}
               style={styles.input}
               value={this.state.name}
-              onChangeText={(text) => this.setState({name: text})}
+              onChangeText={text => this.setState({name: text})}
             />
             {this.state.show_error_name ? (
               <HelperText type="error" visible={this.state.show_error_name}>
@@ -292,7 +254,7 @@ class Crear_cliente extends Component {
               theme={{colors: {primary: '#ff8c00'}}}
               style={styles.input}
               value={this.state.last_name}
-              onChangeText={(text) => this.setState({last_name: text})}
+              onChangeText={text => this.setState({last_name: text})}
             />
             {this.state.show_error_last ? (
               <HelperText type="error" visible={this.state.show_error_last}>
@@ -305,343 +267,95 @@ class Crear_cliente extends Component {
               theme={{colors: {primary: '#ff8c00'}}}
               style={styles.input}
               value={this.state.email}
-              onChangeText={(text) => this.setState({email: text})}
+              onChangeText={text => this.setState({email: text})}
             />
             {this.state.show_error_email ? (
               <HelperText type="error" visible={this.state.show_error_email}>
                 El correo debe ser valido ejemplo: asd@gmail.com
               </HelperText>
             ) : null}
-            <Modal
-              animationType="slide"
-              visible={this.state.ciudad_open}
-              onRequestClose={() => {
-                Alert.alert('Modal has been closed.');
-              }}>
-              <SafeAreaView>
-                <ScrollView>
-                  <View>
-                    {this.state.searching ? (
-                      <View style={styles.center_view}>
-                        <ActivityIndicator
-                          animating={true}
-                          style={{top: 0, right: '20%', position: 'absolute'}}
-                          color="red"
-                        />
-                        <Text>Buscando</Text>
-                      </View>
-                    ) : (
-                      <View style={styles.center_view}>
-                        <Text>Seleccionar Ciudad</Text>
-                      </View>
-                    )}
-                    <View style={{flex: 1, flexDirection: 'row'}}>
-                      <TextInput
-                        mode="outlined"
-                        label="Ciudad"
-                        theme={{colors: {primary: '#ff8c00'}}}
-                        style={{width: '90%', marginLeft: '2%'}}
-                        value={this.state.id_ciudad}
-                        onChangeText={(text) => this.search_ciudad(text)}
-                      />
-                    </View>
-                    {this.state.ciudades.map((row, index) => (
-                      <List.Item
-                        title={row.id_ciudad}
-                        onPress={() =>
-                          this.setState({id_ciudad: row.id_ciudad})
-                        }
-                        left={(props) => (
-                          <List.Icon {...props} color="#000" icon="magnify" />
-                        )}
-                      />
-                    ))}
-                    <Button
-                      mode="outlined"
-                      style={{
-                        width: '100%',
-                      }}
-                      loading={this.state.cargando}
-                      theme={{colors: {primary: 'green'}}}
-                      onPress={() => this._hideModal_ciudad()}>
-                      <Icon name="check" size={35} />
-                      Finalizar
-                    </Button>
-                  </View>
-                </ScrollView>
-              </SafeAreaView>
-            </Modal>
-
-            <Modal
-              animationType="slide"
-              visible={this.state.pais_open}
-              onRequestClose={() => {
-                Alert.alert('Modal has been closed.');
-              }}>
-              <SafeAreaView>
-                <ScrollView>
-                  <View>
-                    {this.state.searching ? (
-                      <View style={styles.center_view}>
-                        <ActivityIndicator
-                          animating={true}
-                          style={{top: 0, right: '20%', position: 'absolute'}}
-                          color="red"
-                        />
-                        <Text>Buscando</Text>
-                      </View>
-                    ) : (
-                      <View style={styles.center_view}>
-                        <Text>Seleccionar País</Text>
-                      </View>
-                    )}
-                    <View style={{flex: 1, flexDirection: 'row'}}>
-                      <TextInput
-                        mode="outlined"
-                        label="País"
-                        theme={{colors: {primary: '#ff8c00'}}}
-                        style={{width: '90%', marginLeft: '2%'}}
-                        value={this.state.id_pais}
-                        onChangeText={(text) => this.search_pais(text)}
-                      />
-                    </View>
-                    {this.state.paises.map((row, index) => (
-                      <List.Item
-                        title={row.id_pais}
-                        onPress={() => this.setState({id_pais: row.id_pais})}
-                        left={(props) => (
-                          <List.Icon {...props} color="#000" icon="magnify" />
-                        )}
-                      />
-                    ))}
-                    <Button
-                      mode="outlined"
-                      style={{
-                        width: '100%',
-                      }}
-                      loading={this.state.cargando}
-                      theme={{colors: {primary: 'green'}}}
-                      onPress={() => this._hideModal_pais()}>
-                      <Icon name="check" size={35} />
-                      Finalizar
-                    </Button>
-                  </View>
-                </ScrollView>
-              </SafeAreaView>
-            </Modal>
-
-            <Modal
-              animationType="slide"
-              visible={this.state.direccion_open}
-              onRequestClose={() => {
-                Alert.alert('Modal has been closed.');
-              }}>
-              <SafeAreaView>
-                <ScrollView>
-                  <View style={styles.center_view}>
-                    <View style={{marginTop: '4%'}}>
-                      <Text style={{fontSize: 20}}>Registrar Dirección</Text>
-                    </View>
-                    <View style={{flex: 1, flexDirection: 'row'}}>
-                      <TextInput
-                        mode="outlined"
-                        label="Dirección"
-                        theme={{colors: {primary: '#ff8c00'}}}
-                        style={{width: '85%', marginLeft: '2%'}}
-                        value={this.state.id_direccion}
-                        onChangeText={(text) =>
-                          this.setState({id_direccion: text})
-                        }
-                      />
-                      <TouchableWithoutFeedback
-                        onPress={this.registrar_direccion}>
-                        <Animatable.View ref="direccion">
-                          <Icon
-                            name="checkbox-marked"
-                            color="green"
-                            size={60}
-                          />
-                        </Animatable.View>
-                      </TouchableWithoutFeedback>
-                    </View>
-                    <DataTable>
-                      <DataTable.Header>
-                        <DataTable.Title>Dirección</DataTable.Title>
-                        <DataTable.Title numeric>Eliminar</DataTable.Title>
-                      </DataTable.Header>
-                      {this.state.direcciones.map((row, index) => (
-                        <DataTable.Row
-                          key={index}
-                          onPress={() => this.delete_direccion(row.direccion)}>
-                          <DataTable.Cell>{row.direccion}</DataTable.Cell>
-                          <DataTable.Cell numeric>
-                            <Icon name="close-circle" color="red" size={30} />
-                          </DataTable.Cell>
-                        </DataTable.Row>
-                      ))}
-                    </DataTable>
-                    <Snackbar
-                      visible={this.state.error_direccion_tel}
-                      onDismiss={this._onDismissSnackBar}
-                      duration={2}
-                      style={{backgroundColor: '#E74026'}}
-                      action={{
-                        label: 'OK',
-                        onPress: () => {
-                          this.setState({error_direccion_tel: false});
-                        },
-                      }}>
-                      El país, la ciudad y la dirección no pueden ser vacio
-                    </Snackbar>
-                    <Button
-                      mode="outlined"
-                      style={{
-                        width: '100%',
-                      }}
-                      loading={this.state.cargando}
-                      theme={{colors: {primary: 'green'}}}
-                      onPress={() => this._hideModal_direccion()}>
-                      <Icon name="check" size={35} />
-                      Finalizar
-                    </Button>
-                  </View>
-                </ScrollView>
-              </SafeAreaView>
-            </Modal>
-
-            <Modal
-              animationType="slide"
-              visible={this.state.telefono_open}
-              onRequestClose={() => {
-                Alert.alert('Modal has been closed.');
-              }}>
-              <SafeAreaView>
-                <ScrollView>
-                  <View style={styles.center_view}>
-                    <View style={{marginTop: '4%'}}>
-                      <Text style={{fontSize: 20}}>Registrar Teléfono</Text>
-                    </View>
-                    <View style={{flex: 1, flexDirection: 'row'}}>
-                      <TextInput
-                        mode="outlined"
-                        label="Teléfono"
-                        theme={{colors: {primary: '#ff8c00'}}}
-                        style={{width: '85%', marginLeft: '2%'}}
-                        value={this.state.id_telefono}
-                        onChangeText={(text) =>
-                          this.setState({id_telefono: text})
-                        }
-                      />
-                      <TouchableWithoutFeedback
-                        onPress={this.registrar_telefono}>
-                        <Animatable.View ref="telefono">
-                          <Icon
-                            name="checkbox-marked"
-                            color="green"
-                            size={60}
-                          />
-                        </Animatable.View>
-                      </TouchableWithoutFeedback>
-                    </View>
-                    <DataTable>
-                      <DataTable.Header>
-                        <DataTable.Title>Teléfono</DataTable.Title>
-                        <DataTable.Title numeric>Eliminar</DataTable.Title>
-                      </DataTable.Header>
-                      {this.state.telefonos.map((row, index) => (
-                        <DataTable.Row
-                          key={index}
-                          onPress={() => this.delete_telefonos(row.telefono)}>
-                          <DataTable.Cell>{row.telefono}</DataTable.Cell>
-                          <DataTable.Cell numeric>
-                            <Icon name="close-circle" color="red" size={30} />
-                          </DataTable.Cell>
-                        </DataTable.Row>
-                      ))}
-                    </DataTable>
-                    <Snackbar
-                      visible={this.state.error_direccion_tel}
-                      onDismiss={this._onDismissSnackBar}
-                      duration={2}
-                      style={{backgroundColor: '#E74026'}}
-                      action={{
-                        label: 'OK',
-                        onPress: () => {
-                          this.setState({error_direccion_tel: false});
-                        },
-                      }}>
-                      El país, la ciudad y el teléfono no pueden ser vacio
-                    </Snackbar>
-                    <Button
-                      mode="outlined"
-                      style={{
-                        width: '100%',
-                      }}
-                      loading={this.state.cargando}
-                      theme={{colors: {primary: 'green'}}}
-                      onPress={() => this._hideModal_telefono()}>
-                      <Icon name="check" size={35} />
-                      Finalizar
-                    </Button>
-                  </View>
-                </ScrollView>
-              </SafeAreaView>
-            </Modal>
+            <TextInput
+              mode="outlined"
+              label="Celular"
+              theme={{colors: {primary: '#ff8c00'}}}
+              style={styles.input}
+              value={this.state.cell}
+              onChangeText={text => this.setState({cell: text})}
+            />
+            {this.state.show_error_cell ? (
+              <HelperText type="error" visible={this.state.show_error_cell}>
+                Debe ingresar un número de celular válido
+              </HelperText>
+            ) : null}
+            <TextInput
+              mode="outlined"
+              label="Teléfono"
+              theme={{colors: {primary: '#ff8c00'}}}
+              style={styles.input}
+              value={this.state.tel}
+              onChangeText={text => this.setState({tel: text})}
+            />
+            {this.state.show_error_tel ? (
+              <HelperText type="error" visible={this.state.show_error_tel}>
+                Debe ingresar un número de télefono válido
+              </HelperText>
+            ) : null}
+            <TextInput
+              mode="outlined"
+              label="Dirección"
+              theme={{colors: {primary: '#ff8c00'}}}
+              style={styles.input}
+              value={this.state.dir}
+              onChangeText={text => this.setState({dir: text})}
+            />
+            {this.state.show_error_dir ? (
+              <HelperText type="error" visible={this.state.show_error_dir}>
+                Debe ingresar una dirección válida
+              </HelperText>
+            ) : null}
             <Divider />
-
-            <View style={{flex: 1, flexDirection: 'row'}}>
-              <FAB
-                style={styles.fab}
-                small
-                label="País"
-                icon="map-marker-outline"
-                onPress={() => this._showModal_pais()}
-              />
-              <FAB
-                style={styles.fab}
-                small
-                icon="earth"
-                label="Ciudad"
-                onPress={() => this._showModal_ciudad()}
-              />
-            </View>
-            <View style={{flex: 1, flexDirection: 'row'}}>
-              <FAB
-                style={styles.fab}
-                small
-                icon="home-outline"
-                label="Dirección"
-                onPress={() => this._showModal_direccion()}
-              />
-              <FAB
-                style={styles.fab}
-                small
-                label="Teléfono"
-                icon="phone-outline"
-                onPress={() => this._showModal_telefono()}
-              />
-            </View>
             <Button
               mode="outlined"
-              style={{width: '90%', marginLeft: '5%', marginTop: '10%', backgroundColor:'black', borderRadius:15}}
+              style={{
+                width: '95%',
+                marginTop: '5%',
+                backgroundColor: '#F7B21E',
+                marginLeft: '2%',
+              }}
+              theme={{colors: {primary: 'black'}}}
+              onPress={() => this.select_file()}>
+              <Icon name="paperclip" size={25} />
+              Adjuntar Documento
+            </Button>
+            <Button
+              mode="outlined"
+              style={{
+                width: '95%',
+                marginLeft: '2%',
+                marginTop: '5%',
+                marginBottom: '5%',
+                backgroundColor: 'black',
+                borderRadius: 15,
+                
+              }}
               loading={this.state.cargando}
               theme={{colors: {primary: '#F7B21E'}}}
               onPress={() => this.comprobar_form()}>
-              <Icon name="account-check-outline" size={35} />
-              Crear Cliente
+              <Icon name="check" size={30} />
+              Enviar Petición
             </Button>
-              <Snackbar
-                visible={this.state.show_snackbar}
-                onDismiss={this._onDismissSnackBar}
-                style={{backgroundColor: '#4B0082'}}
-                action={{
-                  label: 'OK',
-                  onPress: () => {
-                    this.setState({show_snackbar: false, mensaje: ''});
-                  },
-                }}>
-                {this.state.mensaje}
-              </Snackbar>
+            <Snackbar
+              visible={this.state.show_snackbar}
+              onDismiss={this._onDismissSnackBar}
+              style={{backgroundColor: '#4B0082'}}
+              action={{
+                label: 'OK',
+                onPress: () => {
+                  this.setState({show_snackbar: false, mensaje: ''});
+                },
+              }}>
+              {this.state.mensaje}
+            </Snackbar>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -649,16 +363,23 @@ class Crear_cliente extends Component {
   }
 }
 
-const mapStateToProps = (state) => {
+const mapStateToProps = state => {
   return {
     usuario: state.reducer.user,
+    token: state.reducer.token,
   };
 };
 const mapDispatchToProps = {};
 
-export default connect(mapStateToProps, mapDispatchToProps)(Crear_cliente);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(Crear_cliente);
 
 const styles = StyleSheet.create({
+  containerS: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     alignItems: 'center',
