@@ -140,7 +140,7 @@ class Crear_cliente extends Component {
           formData.append("upload[]", item);
         });
 
-        fetch('http://192.168.1.9:4000/client/create', {
+        fetch('http://172.16.5.2:5000/client/create', {
           method: 'POST',
           body: formData, // data can be `string` or {object}!
           headers: {

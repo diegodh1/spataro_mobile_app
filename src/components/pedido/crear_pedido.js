@@ -31,11 +31,19 @@ import AwesomeAlert from 'react-native-awesome-alerts';
 class Crear_pedido extends Component {
   constructor(props) {
     super(props);
+    let minDate = new Date()
+    minDate.setDate(minDate.getDate() + 30);
+    let enable_date = [
+      minDate.getFullYear(),
+      ('0' + (minDate.getMonth() + 1)).slice(-2),
+      ('0' + minDate.getDate()).slice(-2)
+    ].join('/');
+    console.log(enable_date)
     this.state = {
       nombre_cliente: '',
-      apellido_cliente: '',
       fecha: '',
       name: '',
+      minDate: minDate,
       firma: '',
       observacion: '',
       cargando: false,
@@ -72,34 +80,39 @@ class Crear_pedido extends Component {
 
   search_cliente_n(value) {
     this.setState({nombre_cliente: value, searching: true, clientes_aux: []});
-    setTimeout(() => {
-      const {nombre_cliente, apellido_cliente} = this.state;
-      fetch('http://192.168.1.86:4000/buscar_cliente', {
-        method: 'POST',
-        body: JSON.stringify({
-          nombre: nombre_cliente,
-          apellido: apellido_cliente,
-        }), // data can be `string` or {object}!
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-        .then(res => res.json())
-        .then(response => {
-          this.setState({clientes: response, searching: false});
-          let clientes = [];
-          for (let i = 0; i < response.length; i++) {
-            let nombre = response[i].nombre + ' ' + response[i].apellido;
-            clientes.push({label: nombre, value: response[i].id_cliente, key:response[i].id_cliente});
-          }
-          clientes = [...new Set(clientes)]
-          this.setState({clientes_aux: clientes});
+    if (value != '' && value != undefined && value != null) {
+      setTimeout(() => {
+        const {nombre_cliente} = this.state;
+        fetch('http://192.168.1.9:5000/client/search/' + nombre_cliente, {
+          method: 'GET', // data can be `string` or {object}!
+          headers: {
+            Authorization: 'Bearer ' + this.props.token,
+            'Content-Type': 'application/json',
+          },
         })
-        .catch(error => {
-          this.setState({clientes: [], searching: false});
-          alert(error);
-        });
-    }, 200);
+          .then(res => res.json())
+          .then(response => {
+            this.setState({clientes: response.payload, searching: false});
+            let clientes = [];
+            for (let i = 0; i < response.payload.length; i++) {
+              let nombre = response.payload[i].NombreTercero;
+              clientes.push({
+                label: nombre,
+                value: response.payload[i].NitTercero,
+                key: response.payload[i].NitTercero,
+              });
+            }
+            clientes = [...new Set(clientes)];
+            this.setState({clientes_aux: clientes});
+          })
+          .catch(error => {
+            this.setState({clientes: [], searching: false});
+            alert(error);
+          });
+      }, 200);
+    }else{
+      this.setState({clientes: [], searching: false});
+    }
   }
 
   search_referencia(value) {
@@ -206,37 +219,6 @@ class Crear_pedido extends Component {
     }
   }
 
-  search_cliente_a(value) {
-    this.setState({apellido_cliente: value, searching: true, clientes_aux: []});
-    setTimeout(() => {
-      const {nombre_cliente, apellido_cliente} = this.state;
-      fetch('http://192.168.1.86:4000/buscar_cliente', {
-        method: 'POST',
-        body: JSON.stringify({
-          nombre: nombre_cliente,
-          apellido: apellido_cliente,
-        }), // data can be `string` or {object}!
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-        .then(res => res.json())
-        .then(response => {
-          this.setState({clientes: response, searching: false});
-          let clientes = [];
-          for (let i = 0; i < response.length; i++) {
-            let nombre = response[i].nombre + ' ' + response[i].apellido;
-            clientes.push({label: nombre, value: response[i].id_cliente, key:response[i].id_cliente});
-          }
-          clientes = [...new Set(clientes)]
-          this.setState({clientes_aux: clientes});
-        })
-        .catch(error => {
-          this.setState({clientes: [], searching: false});
-          alert(error);
-        });
-    }, 200);
-  }
   crear_pedido(value) {
     this.setState({cargando: true});
     const {id_cliente, date, observacion, direccion_despacho} = this.state;
@@ -296,7 +278,7 @@ class Crear_pedido extends Component {
             id_pedido: this.state.id_pedido,
             observacion,
             direccion: direccion_despacho,
-            id_usuario
+            id_usuario,
           }), // data can be `string` or {object}!
           headers: {
             'Content-Type': 'application/json',
@@ -323,12 +305,7 @@ class Crear_pedido extends Component {
                 date: '',
                 id_pedido: '',
                 id_cliente: '',
-                selected_cliente: {
-                  nombre: '',
-                  apellido: '',
-                  correo: '',
-                  id_cliente: '',
-                },
+                selected_cliente: {nit:'', email:'', direccion:'', telefono: '',celular: ''},
                 show_snack: false,
                 message: '',
                 show_firma: false,
@@ -421,7 +398,7 @@ class Crear_pedido extends Component {
   }
   delete_ref_pedido(value) {
     this.setState({actualizando: true});
-    fetch('http://192.168.1.86:4000/eliminar_ref_unidades', {
+    fetch('http://192.168.1.86:5000/eliminar_ref_unidades', {
       method: 'POST',
       body: JSON.stringify({
         id_pedido: this.state.id_pedido,
@@ -453,12 +430,32 @@ class Crear_pedido extends Component {
     console.log(item);
   }
   set_id_cliente = value => {
-    this.setState({id_cliente: value});
+    this.setState({id_cliente: value, searching:true});
     for (let i = 0; i < this.state.clientes.length; i++) {
-      if (this.state.clientes[i].id_cliente === value) {
-        this.setState({selected_cliente: this.state.clientes[i]});
+      if (this.state.clientes[i].NitTercero === value) {
+        fetch('http://192.168.1.9:5000/client/info/' + value, {
+          method: 'GET', // data can be `string` or {object}!
+          headers: {
+            Authorization: 'Bearer ' + this.props.token,
+            'Content-Type': 'application/json',
+          },
+        })
+          .then(res => res.json())
+          .then(response => {
+            if(response.payload.length > 0){
+              this.setState({
+                selected_cliente:{nit:response.payload[0].NitCC, email:response.payload[0].Email, direccion:response.payload[0].Direccion, telefono: response.payload[0].Telefono,celular: response.payload[0].Celular},
+                searching:false
+              })
+            }
+          })
+          .catch(error => {
+            this.setState({selected_cliente: {nit:'', email:'', direccion:'', telefono: '',celular: ''}, searching:false});
+            alert(error);
+          });
       }
     }
+    this.setState({searching:false});
   };
   set_id_consecutivo = value => {
     this.setState({id_consecutivo: value});
@@ -545,13 +542,6 @@ class Crear_pedido extends Component {
               onChangeText={text => this.search_cliente_n(text)}
               value={this.state.nombre_cliente}
             />
-            <Searchbar
-              placeholder="Buscar por Apellido"
-              theme={{colors: {primary: '#ff8c00'}}}
-              style={styles.input}
-              onChangeText={text => this.search_cliente_a(text)}
-              value={this.state.apellido_cliente}
-            />
             <RNPickerSelect
               placeholder={placeholder}
               onValueChange={value => this.set_id_cliente(value)}
@@ -569,19 +559,18 @@ class Crear_pedido extends Component {
               }}
             />
             <View style={{width: '90%', marginLeft: '5%', marginTop: '3%'}}>
-              <Title>Nro {this.state.selected_cliente.id_cliente}</Title>
-              <Paragraph>
-                {this.state.selected_cliente.nombre +
-                  ' ' +
-                  this.state.selected_cliente.apellido}
-              </Paragraph>
-              <Paragraph>{this.state.selected_cliente.correo}</Paragraph>
+              <Title>Nro {this.state.selected_cliente.nit}</Title>
+              <Paragraph>{"Correo: "+ (this.state.selected_cliente.email==undefined?"":this.state.selected_cliente.email)}</Paragraph>
+              <Paragraph>{"Dirección: "+(this.state.selected_cliente.direccion==undefined?"":this.state.selected_cliente.direccion)}</Paragraph>
+              <Paragraph>{"Teléfono: "+(this.state.selected_cliente.telefono==undefined?"":this.state.selected_cliente.telefono)}</Paragraph>
+              <Paragraph>{"Celular: "+(this.state.selected_cliente.celular==undefined?"":this.state.selected_cliente.celular)}</Paragraph>
             </View>
             <Divider />
             <DatePicker
               style={{width: '90%', marginTop: '5%', marginLeft: '3%'}}
               date={this.state.date}
               mode="date"
+              minDate = {this.state.minDate}
               placeholder="seleccionar Fecha Despacho"
               format="YYYY/MM/DD"
               confirmBtnText="Confirm"
@@ -618,7 +607,6 @@ class Crear_pedido extends Component {
                 {this.state.message}
               </Snackbar>
             </View>
-            {this.state.id_pedido !== '' ? (
               <View style={{flex: 1, flexDirection: 'row'}}>
                 <Button
                   mode="outlined"
@@ -649,8 +637,6 @@ class Crear_pedido extends Component {
                   Firma
                 </Button>
               </View>
-            ) : null}
-            {this.state.id_pedido !== '' ? (
               <View>
                 <Button
                   mode="outlined"
@@ -686,7 +672,6 @@ class Crear_pedido extends Component {
                   }
                 />
               </View>
-            ) : null}
             {this.state.id_pedido === '' ? (
               <Button
                 mode="outlined"
@@ -954,6 +939,7 @@ class Crear_pedido extends Component {
 const mapStateToProps = state => {
   return {
     usuario: state.reducer.user,
+    token: state.reducer.token,
   };
 };
 const mapDispatchToProps = {};

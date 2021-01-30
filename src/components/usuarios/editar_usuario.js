@@ -91,7 +91,7 @@ class Editar_usuario extends Component {
       if (
         this.state.id_usuario_aux.length > 0
       ) {
-        fetch('http://192.168.1.9:4000/user/search/'+this.state.id_usuario_aux, {
+        fetch('http://192.168.1.9:5000/user/search/'+this.state.id_usuario_aux, {
           method: 'GET',// data can be `string` or {object}!
           headers: {
             Authorization: 'Bearer ' + this.props.token
@@ -196,7 +196,7 @@ class Editar_usuario extends Component {
             Status: menus[i].activo,
           });
         }
-        fetch('http://192.168.1.9:4000/user/update', {
+        fetch('http://192.168.1.9:5000/user/update', {
           method: 'POST',
           body: JSON.stringify({
             User: {

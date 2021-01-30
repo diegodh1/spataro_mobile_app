@@ -47,7 +47,7 @@ class Login extends Component {
     let users = realm.objects('UserApp')
     if(users.length > 0){
       let userTemp  = users[users.length - 1]
-      fetch('http://192.168.1.9:4000/user/login', {
+      fetch('http://192.168.1.9:5000/user/login', {
       method: 'POST',
       body: JSON.stringify({
         UserID: userTemp.username,
@@ -84,7 +84,7 @@ class Login extends Component {
   }
 
   makeRequest = () =>{
-    fetch('http://192.168.1.9:4000/user/login', {
+    fetch('http://192.168.1.9:5000/user/login', {
       method: 'POST',
       body: JSON.stringify({
         UserID: this.state.user,
@@ -225,7 +225,7 @@ class Login extends Component {
         ) : (
           <Modal
             visible={this.state.cargando}
-            contentContainerStyle={{backgroundColor: '#fee89b'}}>
+            contentContainerStyle={{backgroundColor: '#9dcacd'}}>
             <View style={{height: '100%'}}>
               <Image
                 style={styles.loader}

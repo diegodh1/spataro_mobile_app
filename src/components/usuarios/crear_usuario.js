@@ -125,7 +125,7 @@ class Crear_usuario extends Component {
             Status: menu_aux[i].activo,
           });
         }
-        fetch('http://192.168.1.9:4000/user/create', {
+        fetch('http://172.16.5.2:5000/user/create', {
           method: 'POST',
           body: JSON.stringify({
             User: {
