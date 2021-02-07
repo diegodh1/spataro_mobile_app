@@ -125,7 +125,7 @@ class Crear_usuario extends Component {
             Status: menu_aux[i].activo,
           });
         }
-        fetch('http://172.16.5.2:5000/user/create', {
+        fetch(this.props.ruta+'/user/create', {
           method: 'POST',
           body: JSON.stringify({
             User: {
@@ -339,6 +339,7 @@ const mapStateToProps = state => {
   return {
     usuario: state.reducer.user,
     token: state.reducer.token,
+    ruta: state.reducer.ruta,
   };
 };
 const mapDispatchToProps = {};

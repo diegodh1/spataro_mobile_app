@@ -91,10 +91,10 @@ class Editar_usuario extends Component {
       if (
         this.state.id_usuario_aux.length > 0
       ) {
-        fetch('http://192.168.1.9:5000/user/search/'+this.state.id_usuario_aux, {
+        fetch(this.props.ruta+'/user/search/'+this.state.id_usuario_aux, {
           method: 'GET',// data can be `string` or {object}!
           headers: {
-            Authorization: 'Bearer ' + this.props.token
+            Authorization: 'Bearer ' + this.props.token,
           },
         })
           .then(res => res.json())
@@ -129,6 +129,7 @@ class Editar_usuario extends Component {
             }
           })
           .catch(error => {
+            console.log(error)
             this.setState({
               mensaje: 'error interno del servidor',
               searching: false,
@@ -196,7 +197,7 @@ class Editar_usuario extends Component {
             Status: menus[i].activo,
           });
         }
-        fetch('http://192.168.1.9:5000/user/update', {
+        fetch(this.props.ruta+'/user/update', {
           method: 'POST',
           body: JSON.stringify({
             User: {
@@ -420,6 +421,7 @@ const mapStateToProps = state => {
   return {
     usuario: state.reducer.user,
     token: state.reducer.token,
+    ruta: state.reducer.ruta,
   };
 };
 const mapDispatchToProps = {};

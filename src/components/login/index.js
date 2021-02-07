@@ -47,7 +47,7 @@ class Login extends Component {
     let users = realm.objects('UserApp')
     if(users.length > 0){
       let userTemp  = users[users.length - 1]
-      fetch('http://192.168.1.9:5000/user/login', {
+      fetch(this.props.ruta+'/user/login', {
       method: 'POST',
       body: JSON.stringify({
         UserID: userTemp.username,
@@ -84,7 +84,7 @@ class Login extends Component {
   }
 
   makeRequest = () =>{
-    fetch('http://192.168.1.9:5000/user/login', {
+    fetch(this.props.ruta+'/user/login', {
       method: 'POST',
       body: JSON.stringify({
         UserID: this.state.user,
@@ -113,14 +113,17 @@ class Login extends Component {
             response.payload.Profiles,
             response.payload.Token,
           );
+          console.log("entro")
           this.props.navigation.navigate('home');
         } else {
+          console.log("No Entro")
           this.setState({cargando: false});
           this.props.error_login(response.message);
           this.setState({message: response.message, show_snack: true});
         }
       })
       .catch(error => {
+        console.log("No Entro Error")
         this.setState({cargando: false});
         this.props.error_login('el servidor no puede procesar la solicitud');
       });
@@ -242,6 +245,7 @@ class Login extends Component {
 const mapStateToProps = state => {
   return {
     usuario: state.reducer.user,
+    ruta: state.reducer.ruta,
   };
 };
 const mapDispatchToProps = {

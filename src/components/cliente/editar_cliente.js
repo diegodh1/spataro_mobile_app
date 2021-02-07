@@ -67,7 +67,7 @@ class Editar_cliente extends Component {
   }
 
   componentDidMount() {
-    fetch('http://192.168.1.86:4000/get_documentos', {
+    fetch(this.props.ruta+'/get_documentos', {
       method: 'POST',
       body: JSON.stringify({}), // data can be `string` or {object}!
       headers: {
@@ -86,7 +86,7 @@ class Editar_cliente extends Component {
   search_ciudad(value) {
     this.setState({id_ciudad: value, searching: true});
 
-    fetch('http://192.168.1.86:4000/get_ciudades', {
+    fetch(this.props.ruta+'/get_ciudades', {
       method: 'POST',
       body: JSON.stringify({
         id_ciudad: value,
@@ -108,7 +108,7 @@ class Editar_cliente extends Component {
   search_pais(value) {
     this.setState({id_pais: value, searching: true});
 
-    fetch('http://192.168.1.86:4000/get_paises', {
+    fetch(this.props.ruta+'/get_paises', {
       method: 'POST',
       body: JSON.stringify({
         id_pais: value,
@@ -171,7 +171,7 @@ class Editar_cliente extends Component {
         !show_error_email
       ) {
         this.setState({cargando: true});
-        fetch('http://192.168.1.86:4000/editar_cliente', {
+        fetch(this.props.ruta+'/editar_cliente', {
           method: 'POST',
           body: JSON.stringify({
             id_cliente: this.state.id_usuario_aux,
@@ -247,7 +247,7 @@ class Editar_cliente extends Component {
 
   search_cliente(text) {
     this.setState({id_usuario: text, searching: true});
-    fetch('http://192.168.1.86:4000/search_cliente', {
+    fetch(this.props.ruta+'/search_cliente', {
       method: 'POST',
       body: JSON.stringify({
         id_cliente: text,
@@ -762,6 +762,7 @@ class Editar_cliente extends Component {
 const mapStateToProps = (state) => {
   return {
     usuario: state.reducer.user,
+    ruta: state.reducer.ruta,
   };
 };
 const mapDispatchToProps = {};

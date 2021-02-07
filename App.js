@@ -7,6 +7,7 @@ import Home from './src/components/home';
 import Menu_perfil from './src/components/home/drawer_perfil';
 import Crear_usuario from './src/components/usuarios/crear_usuario';
 import Referencia from './src/components/referencia';
+import Catalogo from './src/components/catalogo';
 import Editar_usuario from './src/components/usuarios/editar_usuario';
 import { Provider } from 'react-redux';
 import store from './src/store';
@@ -18,6 +19,7 @@ const AppSwitchNavigator = createSwitchNavigator({
   Usuario: {screen: Usuario},
   Cliente: {screen: Cliente},
   Pedido: {screen: Pedido},
+  Catalogo: {screen: Catalogo},
   Menu_perfil: {screen: Menu_perfil},
   Crear_usuario: {screen: Crear_usuario},
   Editar_usuario: {screen: Editar_usuario},

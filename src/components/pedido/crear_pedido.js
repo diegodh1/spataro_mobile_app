@@ -27,6 +27,7 @@ import RNFS from 'react-native-fs';
 import DocumentPicker from 'react-native-document-picker';
 import Firma from './firma';
 import AwesomeAlert from 'react-native-awesome-alerts';
+import { Value } from 'react-native-reanimated';
 
 class Crear_pedido extends Component {
   constructor(props) {
@@ -49,6 +50,8 @@ class Crear_pedido extends Component {
       cargando: false,
       clientes: [],
       clientes_aux: [],
+      puntos_venta :[],
+      punto_venta:'',
       searching: false,
       date: '',
       id_pedido: '',
@@ -61,12 +64,15 @@ class Crear_pedido extends Component {
       file: {uri: ''},
       base64: '',
       id_referencia: '',
-      id_ref_color: '',
-      id_consecutivo: '',
+      color: '',
+      talla: '',
+      precio_unitario:'',
+      unidad_precio:'',
       referencias: [],
       colores_refencia: [],
       ref_color_tallas: [],
-      ref_color_tallas_aux: [],
+      referencias_aux: [],
+      unidades: [],
       cantidad: 0,
       item: {},
       informacion: {items: []},
@@ -83,7 +89,7 @@ class Crear_pedido extends Component {
     if (value != '' && value != undefined && value != null) {
       setTimeout(() => {
         const {nombre_cliente} = this.state;
-        fetch('http://192.168.1.9:5000/client/search/' + nombre_cliente, {
+        fetch(this.props.ruta+'/client/search/' + nombre_cliente, {
           method: 'GET', // data can be `string` or {object}!
           headers: {
             Authorization: 'Bearer ' + this.props.token,
@@ -122,81 +128,97 @@ class Crear_pedido extends Component {
       colores_refencia: [],
       ref_color_tallas: [],
     });
-    fetch('http://192.168.1.86:4000/search_ref', {
+    fetch(this.props.ruta+'/pedido/search/item', {
       method: 'POST',
       body: JSON.stringify({
-        id_referencia: value,
+        DescripcionErp: value,
       }), // data can be `string` or {object}!
       headers: {
+        Authorization: 'Bearer ' + this.props.token,
         'Content-Type': 'application/json',
       },
     })
       .then(res => res.json())
       .then(response => {
-        this.setState({referencias: response.sugerencias, searching: false});
-      })
-      .catch(error => {
-        this.setState({searching: false});
-        alert(error);
-      });
-  }
-
-  search_ref_color(value) {
-    this.setState({
-      searching: true,
-      ref_color_tallas: [],
-      id_referencia: value,
-    });
-    fetch('http://192.168.1.86:4000/search_ref_color', {
-      method: 'POST',
-      body: JSON.stringify({
-        id_referencia: value,
-      }), // data can be `string` or {object}!
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(res => res.json())
-      .then(response => {
-        this.setState({
-          colores_refencia: response.sugerencias,
-          searching: false,
-        });
-      })
-      .catch(error => {
-        this.setState({searching: false});
-        alert(error);
-      });
-  }
-
-  search_ref_color_talla(value) {
-    this.setState({
-      searching: true,
-      id_ref_color: value,
-    });
-    fetch('http://192.168.1.86:4000/search_ref_color_talla', {
-      method: 'POST',
-      body: JSON.stringify({
-        id_ref_color: value,
-      }), // data can be `string` or {object}!
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(res => res.json())
-      .then(response => {
-        this.setState({
-          ref_color_tallas: response.sugerencias,
-          searching: false,
-        });
-        let aux_tallas = [];
-        for (let i = 0; i < response.sugerencias.length; i++) {
-          aux_tallas.push({
-            label: '' + response.sugerencias[i].id_talla,
-            value: '' + response.sugerencias[i].id_consecutivo,
+        let temp = []
+        for (let i = 0; i < response.payload.length; i++) {
+          temp.push({
+            label: response.payload[i].DescripcionErp,
+            value: response.payload[i].CodigoErp,
+            key: response.payload[i].CodigoErp,
           });
         }
-        this.setState({ref_color_tallas_aux: aux_tallas});
+        this.setState({referencias_aux:response.payload, referencias: temp, searching: false});
+      })
+      .catch(error => {
+        this.setState({searching: false});
+        alert(error);
+      });
+  }
+  get_color_tallas(value){
+    this.setState({id_referencia:value});
+    this.search_color(value);
+    this.search_talla(value);
+  }
+  search_color(value) {
+    this.setState({
+      searching: true,
+      ref_color_tallas: []
+    });
+    fetch(this.props.ruta+'/pedido/get/color/' + value, {
+          method: 'GET', // data can be `string` or {object}!
+          headers: {
+            Authorization: 'Bearer ' + this.props.token,
+            'Content-Type': 'application/json',
+          },
+        })
+      .then(res => res.json())
+      .then(response => {
+        let temp = [];
+        for(let i = 0; i < response.payload.length; i++){
+          temp.push({
+            label: response.payload[i].Ext1Color,
+            value: response.payload[i],
+            key: response.payload[i].Ext1,
+          });
+        }
+        this.setState({
+          colores_refencia: temp,
+          searching: false,
+        });
+      })
+      .catch(error => {
+        this.setState({searching: false});
+        alert(error);
+      })
+  }
+
+  search_talla(value) {
+    this.setState({
+      searching: true,
+      ref_color_tallas: []
+    });
+    fetch(this.props.ruta+'/pedido/get/talla/' + value, {
+          method: 'GET', // data can be `string` or {object}!
+          headers: {
+            Authorization: 'Bearer ' + this.props.token,
+            'Content-Type': 'application/json',
+          },
+        })
+      .then(res => res.json())
+      .then(response => {
+        let temp = [];
+        for(let i = 0; i < response.payload.length; i++){
+          temp.push({
+            label: response.payload[i].F119Descripcion,
+            value: response.payload[i],
+            key: response.payload[i].IDExt2,
+          });
+        }
+        this.setState({
+          ref_color_tallas: temp,
+          searching: false,
+        });
       })
       .catch(error => {
         this.setState({searching: false});
@@ -204,6 +226,35 @@ class Crear_pedido extends Component {
       });
   }
 
+  search_puntos_envio(value) {
+    this.setState({
+      puntos_venta: []
+    });
+    fetch(this.props.ruta+'/pedido/get/puntos/' + value, {
+          method: 'GET', // data can be `string` or {object}!
+          headers: {
+            Authorization: 'Bearer ' + this.props.token,
+            'Content-Type': 'application/json',
+          },
+        })
+      .then(res => res.json())
+      .then(response => {
+        let temp = [];
+        for(let i = 0; i < response.payload.length; i++){
+          temp.push({
+            label: response.payload[i].PuntoEnvio,
+            value: response.payload[i],
+            key: response.payload[i].F215Rowid,
+          });
+        }
+        this.setState({
+          puntos_venta: temp,
+        });
+      })
+      .catch(error => {
+        alert(error);
+      });
+  }
   async select_file() {
     try {
       const res = await DocumentPicker.pick({
@@ -219,7 +270,7 @@ class Crear_pedido extends Component {
     }
   }
 
-  crear_pedido(value) {
+  crear_pedido() {
     this.setState({cargando: true});
     const {id_cliente, date, observacion, direccion_despacho} = this.state;
     const {usuario} = this.props;
@@ -229,199 +280,83 @@ class Crear_pedido extends Component {
       RNFS.readFile(ruta, 'base64') //substring(7) -> to remove the file://
         .then(res => this.setState({firma: res}));
     }
-
-    setTimeout(() => {
-      const {firma} = this.state;
-      if (this.state.id_pedido === '') {
-        fetch('http://192.168.1.86:4000/crear_pedido', {
-          method: 'POST',
-          body: JSON.stringify({
-            id_cliente,
-            id_usuario,
-            fecha: date,
-            firma,
-            observacion,
-            direccion: direccion_despacho,
-          }), // data can be `string` or {object}!
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-          .then(res => res.json())
-          .then(response => {
-            if (response.id_pedido == -1) {
-              alert('no se pudo obtener el número de pedido');
-              this.setState({cargando: false});
-            } else {
-              let mensaje =
-                'Registro realizado con número: ' + response.id_pedido;
-              this.setState({
-                cargando: false,
-                show_snack: true,
-                id_pedido: response.id_pedido,
-                message: mensaje,
-              });
-            }
-          })
-          .catch(error => {
-            alert(error);
-            this.setState({cargando: false});
-          });
-      } else {
-        fetch('http://192.168.1.86:4000/editar_pedido', {
-          method: 'POST',
-          body: JSON.stringify({
-            id_cliente,
-            activo: value,
-            fecha: date,
-            firma,
-            id_pedido: this.state.id_pedido,
-            observacion,
-            direccion: direccion_despacho,
-            id_usuario,
-          }), // data can be `string` or {object}!
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-          .then(res => res.json())
-          .then(response => {
-            if (response.status === 500) {
-              alert(response.message);
-              this.setState({cargando: false});
-            } else {
-              let mensaje = 'OPERACIÓN REALIZADA';
-              this.setState({
-                nombre_cliente: '',
-                apellido_cliente: '',
-                fecha: '',
-                name: '',
-                firma: '',
-                observacion: '',
-                cargando: false,
-                clientes: [],
-                clientes_aux: [],
-                searching: false,
-                date: '',
-                id_pedido: '',
-                id_cliente: '',
-                selected_cliente: {nit:'', email:'', direccion:'', telefono: '',celular: ''},
-                show_snack: false,
-                message: '',
-                show_firma: false,
-                show_unidades: false,
-                file: {uri: ''},
-                base64: '',
-                id_referencia: '',
-                id_ref_color: '',
-                id_consecutivo: '',
-                referencias: [],
-                colores_refencia: [],
-                ref_color_tallas: [],
-                ref_color_tallas_aux: [],
-                cantidad: 0,
-                item: {},
-                informacion: {items: []},
-                actualizando: false,
-                show_dialog: false,
-                estado_pedido: 'PENDIENTE',
-                direccion_despacho: '',
-              });
-            }
-          })
-          .catch(error => {
-            alert(error);
-            this.setState({cargando: false});
-          });
-      }
-    }, 200);
-  }
-
-  registrar_unidades() {
-    this.setState({cargando: true});
-    if (
-      Number(this.state.cantidad) &&
-      this.state.cantidad > 0 &&
-      this.state.id_consecutivo !== ''
-    ) {
-      fetch('http://192.168.1.86:4000/agregar_item_pedido', {
-        method: 'POST',
-        body: JSON.stringify({
-          id_pedido: this.state.id_pedido,
-          id_consecutivo: this.state.id_consecutivo,
-          unidades: this.state.cantidad,
-          precio: this.state.item.precio,
-        }), // data can be `string` or {object}!
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-        .then(res => res.json())
-        .then(response => {
-          if (response.message === 'Registro Realizado') {
-            this.setState({cargando: false, cantidad: 0});
-            this.dar_unidades_registradas();
-          } else {
-            this.setState({cargando: false});
-            alert(response.message);
-          }
-        })
-        .catch(error => {
-          this.setState({cargando: false});
-          alert(error);
-        });
-    } else {
-      this.setState({cargando: false});
-      alert(
-        'La cantidad debe ser un número y mayor a 0, y debe escoger una referencia, color y talla',
-      );
+    let fechaAux = this.state.date.split("/");
+    let data = {
+      InfoPedido:{
+        PvcDocID:this.state.id_cliente,
+        PvcFechaEntrega:fechaAux[0]+"-"+fechaAux[1]+"-"+fechaAux[2]+"T00:00:00Z",
+        PvcDocVendedor: this.props.usuario.UserID,
+        F215ID:""+this.state.punto_venta,
+        PvcNotas:this.state.observacion
+      },
+      DetallePedido:[]
     }
-  }
-
-  dar_unidades_registradas() {
-    fetch('http://192.168.1.86:4000/dar_items_guardados', {
-      method: 'POST',
-      body: JSON.stringify({
-        id_pedido: this.state.id_pedido,
-      }), // data can be `string` or {object}!
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(res => res.json())
-      .then(response => {
-        this.setState({informacion: response});
+    for(let i = 0; i < this.state.unidades.length; i++){
+      data.DetallePedido.push({
+        PvcDetFechaEntrega:fechaAux[0]+""+fechaAux[1]+""+fechaAux[2],
+        PvcDetCant: parseInt(""+this.state.unidades[i].Unidades),
+        PvcDetNota: "NO TIENE",
+        PvcDetReferencia: this.state.unidades[i].ReferenciaID,
+        PvcDetExt1: this.state.unidades[i].Color,
+        PvcDetExt2: this.state.unidades[i].Talla,
+        PvcDetPrecioUnt: parseInt(""+this.state.unidades[i].PrecioUnitario),
       })
-      .catch(error => {
-        alert(error);
-      });
-  }
-  delete_ref_pedido(value) {
-    this.setState({actualizando: true});
-    fetch('http://192.168.1.86:5000/eliminar_ref_unidades', {
+    }
+    if(fechaAux.length < 2){
+      this.setState({cargando: false, show_dialog:true, message:'Por favor seleccione una fecha de despacho'});
+    }
+    else if(data.DetallePedido.length == 0){
+      this.setState({cargando: false, show_dialog:true, message:'Por favor agregue items al pedido'});
+    }
+    else{
+      fetch(this.props.ruta+'/pedido/crear', {
       method: 'POST',
-      body: JSON.stringify({
-        id_pedido: this.state.id_pedido,
-        consecutivo: value,
-      }), // data can be `string` or {object}!
+      body: JSON.stringify(data), // data can be `string` or {object}!
       headers: {
+        Authorization: 'Bearer ' + this.props.token,
         'Content-Type': 'application/json',
       },
     })
       .then(res => res.json())
       .then(response => {
-        if (response.status === 200) {
-          this.setState({actualizando: false});
-          this.dar_unidades_registradas();
-        } else {
-          this.setState({actualizando: false});
-          alert(response.message);
+        if(response.status == 201){
+          this.setState({cargando: false, show_dialog:true, message:'Registro Realizado!!'});
         }
       })
       .catch(error => {
-        this.setState({actualizando: false});
+        this.setState({cargando: false, show_dialog:true, message:'No se pudo realizar el pedido, por favor verifique conexión a internet.'});
         alert(error);
       });
+    }
+  }
+
+  add_items() {
+    let temp = this.state.unidades;
+    let found = false;
+    for(let i = 0; i < temp.length; i++){
+      if(this.state.id_referencia == temp[i].Referencia 
+        && this.state.color == temp[i].Color 
+        && this.state.talla == temp[i].Talla){
+        temp[i].Unidades = this.state.cantidad;
+        found = true;
+        break;
+      }
+    }
+    
+    let aux = "0"
+    for(let j = 0; j < this.state.referencias_aux.length; j++){
+      if(this.state.referencias_aux[j].CodigoErp == this.state.id_referencia ){
+        aux = this.state.referencias_aux[j].F120Referencia.trim();
+        break;
+      }
+    }
+    if(!found){
+      temp.push({ReferenciaID: aux,Referencia:this.state.id_referencia, Color:this.state.color.trim(), Talla:this.state.talla.IDExt2.trim(), Unidades:this.state.cantidad, PrecioUnitario:this.state.precio_unitario,PrecioUnidad: this.state.unidad_precio});
+    }
+    this.setState({unidades:temp});
+  }
+
+  delete_ref_pedido(value) {
   }
 
   handleSelectItem(item, index) {
@@ -433,7 +368,7 @@ class Crear_pedido extends Component {
     this.setState({id_cliente: value, searching:true});
     for (let i = 0; i < this.state.clientes.length; i++) {
       if (this.state.clientes[i].NitTercero === value) {
-        fetch('http://192.168.1.9:5000/client/info/' + value, {
+        fetch(this.props.ruta+'/client/info/' + value, {
           method: 'GET', // data can be `string` or {object}!
           headers: {
             Authorization: 'Bearer ' + this.props.token,
@@ -456,6 +391,7 @@ class Crear_pedido extends Component {
       }
     }
     this.setState({searching:false});
+    this.search_puntos_envio(value);
   };
   set_id_consecutivo = value => {
     this.setState({id_consecutivo: value});
@@ -475,18 +411,6 @@ class Crear_pedido extends Component {
   bounce() {
     this.refs.view.rubberBand();
   }
-
-  hide_dialog = value => {
-    this.setState({show_dialog: false, estado_pedido: value});
-    this.crear_pedido(value);
-  };
-  show_crear_pedido = () => {
-    if (this.state.id_pedido === '') {
-      this.crear_pedido('PENDIENTE');
-    } else {
-      this.setState({show_dialog: true});
-    }
-  };
   render() {
     const {usuario} = this.props;
     const placeholder = {
@@ -509,13 +433,19 @@ class Crear_pedido extends Component {
       value: null,
       color: '#9EA0A4',
     };
+
+    const punto_venta_label = {
+      label: 'Dirección de despacho...',
+      value: null,
+      color: '#9EA0A4',
+    };
     const elevation = 4;
     const size = 40;
     return (
       <SafeAreaView>
         <ScrollView>
           <View>
-            <Badge size={size} style={{backgroundColor: 'red'}}>
+            <Badge size={size} style={{backgroundColor: 'green'}}>
               {this.state.id_pedido}
             </Badge>
             {this.state.searching ? (
@@ -614,10 +544,9 @@ class Crear_pedido extends Component {
                     width: '47%',
                     marginTop: '10%',
                     marginLeft: '2%',
-                    backgroundColor: 'black',
                   }}
                   loading={this.state.cargando}
-                  theme={{colors: {primary: '#F7B21E'}}}
+                  theme={{colors: {primary: 'green'}}}
                   onPress={() => this.setState({show_unidades: true})}>
                   <Icon name="pen" size={35} />
                   Unidades
@@ -628,10 +557,9 @@ class Crear_pedido extends Component {
                     width: '47%',
                     marginTop: '10%',
                     marginLeft: '2%',
-                    backgroundColor: 'black',
                   }}
                   loading={this.state.cargando}
-                  theme={{colors: {primary: '#F7B21E'}}}
+                  theme={{colors: {primary: 'green'}}}
                   onPress={() => this.setState({show_firma: true})}>
                   <Icon name="feather" size={35} />
                   Firma
@@ -644,10 +572,9 @@ class Crear_pedido extends Component {
                     width: '95%',
                     marginTop: '5%',
                     marginLeft: '2%',
-                    backgroundColor: 'black',
                   }}
                   loading={this.state.cargando}
-                  theme={{colors: {primary: '#F7B21E'}}}
+                  theme={{colors: {primary: 'green'}}}
                   onPress={() => this.select_file()}>
                   <Icon name="feather" size={35} />
                   Seleccionar Firma
@@ -661,68 +588,51 @@ class Crear_pedido extends Component {
                   value={this.state.observacion}
                   onChangeText={text => this.setState({observacion: text})}
                 />
-                <TextInput
-                  mode="outlined"
-                  label="Ingresar Dirección Despacho"
-                  theme={{colors: {primary: '#ff8c00'}}}
-                  style={styles.input}
-                  value={this.state.direccion_despacho}
-                  onChangeText={text =>
-                    this.setState({direccion_despacho: text})
-                  }
-                />
+                <RNPickerSelect
+                      placeholder={punto_venta_label}
+                      onValueChange={value => this.setState({punto_venta:value.F215Rowid})}
+                      items={this.state.puntos_venta}
+                      style={{
+                        ...pickerSelectStyles,
+                        iconContainer: {
+                          top: 20,
+                          right: 10,
+                        },
+                        placeholder: {
+                          color: 'black',
+                          fontSize: 16,
+                        },
+                      }}
+                    />
               </View>
-            {this.state.id_pedido === '' ? (
               <Button
                 mode="outlined"
                 style={{
                   width: '90%',
                   marginLeft: '5%',
                   marginTop: '10%',
-                  backgroundColor: '#F7B21E',
+                  marginBottom: '2%',
+                  backgroundColor: 'green',
                   borderRadius: 10,
                 }}
                 loading={this.state.cargando}
-                theme={{colors: {primary: 'black'}}}
-                onPress={() => this.show_crear_pedido()}>
+                theme={{colors: {primary: 'white'}}}
+                onPress={() => this.crear_pedido()}>
                 <Icon name="account-check-outline" size={35} />
                 Registrar Pedido
               </Button>
-            ) : (
-              <Button
-                mode="outlined"
-                style={{
-                  width: '90%',
-                  marginLeft: '5%',
-                  marginTop: '10%',
-                  backgroundColor: '#F7B21E',
-                  borderRadius: 10,
-                }}
-                loading={this.state.cargando}
-                theme={{colors: {primary: 'black'}}}
-                onPress={() => this.show_crear_pedido()}>
-                <Icon name="account-check-outline" size={35} />
-                Actualizar Pedido
-              </Button>
-            )}
             <AwesomeAlert
               show={this.state.show_dialog}
               showProgress={false}
-              title="¿Qué desea hacer con el pedido?"
-              message="Si lo finaliza podrá editar el pedido después pero no se enviará al correo de la persona y si lo envía no podrá editarlo después pero se enviará el correo"
+              title="Información"
+              message={this.state.message}
               closeOnTouchOutside={true}
               closeOnHardwareBackPress={false}
-              showCancelButton={true}
               showConfirmButton={true}
-              cancelText="Finalizar"
-              confirmText="Enviar"
-              confirmButtonColor="#DD6B55"
-              cancelButtonColor="green"
-              onCancelPressed={() => {
-                this.hide_dialog('FINALIZADO');
-              }}
+              confirmText="Aceptar"
+              confirmButtonColor="green"
               onConfirmPressed={() => {
-                this.hide_dialog('ENVIADO');
+                this.setState({show_dialog:false});
               }}
             />
             <Modal
@@ -766,7 +676,7 @@ class Crear_pedido extends Component {
                     />
                     <RNPickerSelect
                       placeholder={placeholder_ref}
-                      onValueChange={value => this.search_ref_color(value)}
+                      onValueChange={value => this.get_color_tallas(value)}
                       items={this.state.referencias}
                       style={{
                         ...pickerSelectStyles,
@@ -782,9 +692,7 @@ class Crear_pedido extends Component {
                     />
                     <RNPickerSelect
                       placeholder={placeholder_color}
-                      onValueChange={value =>
-                        this.search_ref_color_talla(value)
-                      }
+                      onValueChange={value => this.setState({color: value.Ext1, precio_unitario: value.PrecioUnt, unidad_precio: value.UndPrecio})}
                       items={this.state.colores_refencia}
                       style={{
                         ...pickerSelectStyles,
@@ -800,8 +708,8 @@ class Crear_pedido extends Component {
                     />
                     <RNPickerSelect
                       placeholder={placeholder_talla}
-                      onValueChange={value => this.set_id_consecutivo(value)}
-                      items={this.state.ref_color_tallas_aux}
+                      onValueChange={value => this.setState({talla:value})}
+                      items={this.state.ref_color_tallas}
                       style={{
                         ...pickerSelectStyles,
                         iconContainer: {
@@ -833,7 +741,7 @@ class Crear_pedido extends Component {
                       }}
                       loading={this.state.cargando}
                       theme={{colors: {primary: '#F7B21E'}}}
-                      onPress={() => this.registrar_unidades()}>
+                      onPress={() => this.add_items()}>
                       <Icon name="cart" size={35} />
                       Agregar
                     </Button>
@@ -870,16 +778,16 @@ class Crear_pedido extends Component {
                         <DataTable.Title>Eliminar</DataTable.Title>
                       </DataTable.Header>
                     </DataTable>
-                    {this.state.informacion.items.map((row, index) => (
+                    {this.state.unidades.map((row, index) => (
                       <DataTable.Row
                         key={index}
                         onPress={() =>
                           this.delete_ref_pedido(row.id_consecutivo)
                         }>
-                        <DataTable.Cell>{row.referencia}</DataTable.Cell>
-                        <DataTable.Cell>{row.color}</DataTable.Cell>
-                        <DataTable.Cell>{row.id_talla}</DataTable.Cell>
-                        <DataTable.Cell>{row.unidades}</DataTable.Cell>
+                        <DataTable.Cell>{row.Referencia}</DataTable.Cell>
+                        <DataTable.Cell>{row.Color}</DataTable.Cell>
+                        <DataTable.Cell>{row.Talla}</DataTable.Cell>
+                        <DataTable.Cell>{row.Unidades}</DataTable.Cell>
                         <DataTable.Cell>
                           <Icon name="delete" size={35} color="red" />
                         </DataTable.Cell>
@@ -887,10 +795,10 @@ class Crear_pedido extends Component {
                     ))}
                     <View style={styles.center_view}>
                       <Text style={{marginTop: '5%'}}>
-                        TOTAL UNIDADES: {this.state.informacion.unidades_total}
+                        TOTAL UNIDADES: 
                       </Text>
                       <Text>
-                        PRECIO TOTAL: {this.state.informacion.precio_total}
+                        PRECIO TOTAL:
                       </Text>
                     </View>
                     <Button
@@ -940,6 +848,7 @@ const mapStateToProps = state => {
   return {
     usuario: state.reducer.user,
     token: state.reducer.token,
+    ruta: state.reducer.ruta,
   };
 };
 const mapDispatchToProps = {};
@@ -960,7 +869,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   header: {
-    backgroundColor: '#434343',
+    backgroundColor: 'red',
   },
   center_view: {
     flex: 1,

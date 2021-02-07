@@ -140,7 +140,7 @@ class Crear_cliente extends Component {
           formData.append("upload[]", item);
         });
 
-        fetch('http://172.16.5.2:5000/client/create', {
+        fetch(this.props.ruta+'/client/create', {
           method: 'POST',
           body: formData, // data can be `string` or {object}!
           headers: {
@@ -366,6 +366,7 @@ const mapStateToProps = state => {
   return {
     usuario: state.reducer.user,
     token: state.reducer.token,
+    ruta: state.reducer.ruta,
   };
 };
 const mapDispatchToProps = {};

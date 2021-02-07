@@ -76,7 +76,7 @@ class Editar_pedido extends Component {
     this.setState({nombre_cliente: value, searching: true, clientes_aux: []});
     setTimeout(() => {
       const {nombre_cliente, apellido_cliente} = this.state;
-      fetch('http://192.168.1.86:4000/buscar_cliente', {
+      fetch(this.props.ruta+'/buscar_cliente', {
         method: 'POST',
         body: JSON.stringify({
           nombre: nombre_cliente,
@@ -111,7 +111,7 @@ class Editar_pedido extends Component {
       colores_refencia: [],
       ref_color_tallas: [],
     });
-    fetch('http://192.168.1.86:4000/search_ref', {
+    fetch(this.props.ruta+'/search_ref', {
       method: 'POST',
       body: JSON.stringify({
         id_referencia: value,
@@ -136,7 +136,7 @@ class Editar_pedido extends Component {
       ref_color_tallas: [],
       id_referencia: value,
     });
-    fetch('http://192.168.1.86:4000/search_ref_color', {
+    fetch(this.props.ruta+'/search_ref_color', {
       method: 'POST',
       body: JSON.stringify({
         id_referencia: value,
@@ -163,7 +163,7 @@ class Editar_pedido extends Component {
       searching: true,
       id_ref_color: value,
     });
-    fetch('http://192.168.1.86:4000/search_ref_color_talla', {
+    fetch(this.props.ruta+'/search_ref_color_talla', {
       method: 'POST',
       body: JSON.stringify({
         id_ref_color: value,
@@ -212,7 +212,7 @@ class Editar_pedido extends Component {
     this.setState({apellido_cliente: value, searching: true, clientes_aux: []});
     setTimeout(() => {
       const {nombre_cliente, apellido_cliente} = this.state;
-      fetch('http://192.168.1.86:4000/buscar_cliente', {
+      fetch(this.props.ruta+'/buscar_cliente', {
         method: 'POST',
         body: JSON.stringify({
           nombre: nombre_cliente,
@@ -252,7 +252,7 @@ class Editar_pedido extends Component {
     setTimeout(() => {
       const {firma} = this.state;
 
-      fetch('http://192.168.1.86:4000/editar_pedido', {
+      fetch(this.props.ruta+'/editar_pedido', {
         method: 'POST',
         body: JSON.stringify({
           id_cliente,
@@ -327,7 +327,7 @@ class Editar_pedido extends Component {
     this.setState({id_pedido: value});
     if(Number(value)){
       this.setState({searching: true});
-    fetch('http://192.168.1.86:4000/search_pedido', {
+    fetch(this.props.ruta+'/search_pedido', {
       method: 'POST',
       body: JSON.stringify({
         id_pedido: value,
@@ -404,7 +404,7 @@ class Editar_pedido extends Component {
       this.state.cantidad > 0 &&
       this.state.id_consecutivo !== ''
     ) {
-      fetch('http://192.168.1.86:4000/agregar_item_pedido', {
+      fetch(this.props.ruta+'/agregar_item_pedido', {
         method: 'POST',
         body: JSON.stringify({
           id_pedido: this.state.id_pedido,
@@ -439,7 +439,7 @@ class Editar_pedido extends Component {
   }
 
   dar_unidades_registradas() {
-    fetch('http://192.168.1.86:4000/dar_items_guardados', {
+    fetch(this.props.ruta+'/dar_items_guardados', {
       method: 'POST',
       body: JSON.stringify({
         id_pedido: this.state.id_pedido,
@@ -458,7 +458,7 @@ class Editar_pedido extends Component {
   }
   delete_ref_pedido(value) {
     this.setState({actualizando: true});
-    fetch('http://192.168.1.86:4000/eliminar_ref_unidades', {
+    fetch(this.props.ruta+'/eliminar_ref_unidades', {
       method: 'POST',
       body: JSON.stringify({
         id_pedido: this.state.id_pedido,
@@ -1036,6 +1036,7 @@ class Editar_pedido extends Component {
 const mapStateToProps = state => {
   return {
     usuario: state.reducer.user,
+    ruta: state.reducer.ruta,
   };
 };
 const mapDispatchToProps = {};

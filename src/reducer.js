@@ -6,6 +6,7 @@ const original_estate = {
   token: '',
   message: '',
   load: false,
+  ruta: 'http://192.168.1.8:5000'
 };
 
 const reducer = (state = original_estate,action) => {
