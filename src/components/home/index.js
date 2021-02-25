@@ -101,15 +101,6 @@ function MyDrawer() {
             }}
           />
           <Drawer.Screen
-            name="Referencia"
-            component={Referencia}
-            options={{
-              drawerIcon: config => (
-                <Icon name="file1" size={23} color="black" />
-              ),
-            }}
-          />
-          <Drawer.Screen
             name="Catalogo"
             component={Catalogo}
             options={{

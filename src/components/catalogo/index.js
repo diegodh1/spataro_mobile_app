@@ -8,13 +8,15 @@ import {
   SafeAreaView,
   ScrollView,
   Picker,
+  ActivityIndicator,
 } from 'react-native';
 import * as Animatable from 'react-native-animatable';
-import {Appbar} from 'react-native-paper';
+import {Appbar, Button} from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {Image, Dimensions} from 'react-native';
 import ImageZoom from 'react-native-image-pan-zoom';
 import NumberFormat from 'react-number-format';
+import Share from 'react-native-share';
 
 class Catalogo extends Component {
   constructor(props) {
@@ -25,8 +27,12 @@ class Catalogo extends Component {
       items_fotos_aux: [],
       id_coleccion: '',
       id_item: '',
-      item:{},
-      url:''
+      base64: '',
+      item: {},
+      descripcion: '',
+      precio: 0,
+      url: '',
+      cargando: false,
     };
     this.bounce = this.bounce.bind(this);
   }
@@ -45,9 +51,9 @@ class Catalogo extends Component {
           let temp = [];
           for (let i = 0; i < response.payload.length; i++) {
             temp.push({
-              label: response.payload[i].CategoriaID,
-              value: response.payload[i].CategoriaID,
-              key: response.payload[i].CategoriaID,
+              label: response.payload[i],
+              value: response.payload[i],
+              key: response.payload[i],
             });
           }
           this.setState({referencias: temp});
@@ -57,8 +63,20 @@ class Catalogo extends Component {
         alert(error);
       });
   }
+  shareImage = () => {
+    const shareOptions = {
+      message: 'Romulo Calzado\n'+this.state.descripcion+'. Precio: '+this.currencyFormat(this.state.precio),
+      url: 'data:image/png;base64,' + this.state.base64,
+    };
+    try {
+      const ShareResponse = Share.open(shareOptions);
+      console.log(JSON.stringify(ShareResponse));
+    } catch (error) {
+      console.log('Error =>', error);
+    }
+  };
   getItemsColeccion = value => {
-    this.setState({id_coleccion: value});
+    this.setState({id_coleccion: value, base64: ''});
     fetch(this.props.ruta + '/catalogo/get/fotos/' + value, {
       method: 'GET',
       headers: {
@@ -72,16 +90,12 @@ class Catalogo extends Component {
           let temp = [];
           for (let i = 0; i < response.payload.length; i++) {
             temp.push({
-              label: response.payload[i].Descripcion,
-              value: response.payload[i].CodigoErp,
-              key: response.payload[i].CodigoErp,
-            });
-            response.payload[i].PrecioUnt = response.payload[i].PrecioUnt.toLocaleString('en-US', {
-              style: 'currency',
-              currency: 'USD',
+              label: response.payload[i],
+              value: response.payload[i],
+              key: response.payload[i],
             });
           }
-          this.setState({items_fotos_aux: temp, items_fotos: response.payload});
+          this.setState({items_fotos_aux: temp});
         }
       })
       .catch(error => {
@@ -90,15 +104,40 @@ class Catalogo extends Component {
   };
 
   getFotoItem = value => {
-    this.setState({id_item: value});
-    for(let i = 0; i < this.state.items_fotos.length; i++){
-      if(this.state.items_fotos[i].CodigoErp == value){
-        this.setState({url:this.state.items_fotos[i].Ruta, item:this.state.items_fotos[i]})
-        break
-      }
-    }
+    this.setState({id_item: value, cargando: true});
+    fetch(
+      this.props.ruta +
+        '/catalogo/get/fotos/' +
+        this.state.id_coleccion +
+        '/' +
+        value,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + this.props.token,
+        },
+      },
+    )
+      .then(res => res.json())
+      .then(response => {
+        if (response.status == 200) {
+          this.setState({
+            cargando: false,
+            base64: response.payload.Base64,
+            descripcion: response.payload.Descripcion,
+            precio: response.payload.Precio,
+          });
+        }
+      })
+      .catch(error => {
+        this.setState({cargando: false});
+        alert(error);
+      });
   };
-
+  currencyFormat(num) {
+    return '$' + num.toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+  }
   bounce() {
     this.refs.view.rubberBand();
     setTimeout(() => {
@@ -173,19 +212,46 @@ class Catalogo extends Component {
             imageWidth={320}
             imageHeight={320}>
             <Image
-              style={{width: 320, height: 320}}
+              style={{width: '100%', height: '100%'}}
               source={{
-                uri:this.state.url,
+                uri: 'data:image/png;base64,' + this.state.base64,
               }}
             />
           </ImageZoom>
-          <View
-          style={{marginLeft: '2%'}}>
-            <Text>Referencia: {this.state.item.Referencia}</Text>
-            <Text>Descripcion: {this.state.item.Descripcion}</Text>
-            <Text>Precio: ${this.state.item.PrecioUnt}</Text>
+          <View style={{marginLeft: '2%'}}>
+          <Text style={{fontWeight:'bold'}}>Descripción: {this.state.descripcion}</Text>
+          <Text style={{fontWeight:'bold'}}>Precio: {this.currencyFormat(this.state.precio)}</Text>
+            {!this.state.cargando ? (
+              <Button
+                mode="outlined"
+                style={{
+                  width: '50%',
+                  marginTop: '5%',
+                  marginBottom: '2%',
+                  marginLeft: '25%',
+                }}
+                loading={this.state.cargando}
+                theme={{colors: {primary: 'green'}}}
+                onPress={() => this.shareImage()}
+                icon="share-variant">
+                Compartir
+              </Button>
+            ) : (
+              <Button
+                mode="outlined"
+                style={{
+                  width: '50%',
+                  marginTop: '5%',
+                  marginBottom: '2%',
+                  marginLeft: '25%',
+                }}
+                loading={this.state.cargando}
+                theme={{colors: {primary: 'red'}}}
+                icon="share-variant">
+                Cargando...
+              </Button>
+            )}
           </View>
-          
         </View>
       </SafeAreaView>
     );
@@ -209,5 +275,14 @@ export default connect(
 const styles = StyleSheet.create({
   header: {
     backgroundColor: '#e60000',
+  },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  horizontal: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 10,
   },
 });

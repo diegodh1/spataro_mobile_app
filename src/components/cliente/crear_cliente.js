@@ -40,6 +40,8 @@ class Crear_cliente extends Component {
       cell: '',
       tel: '',
       dir: '',
+      ciudad: '',
+      pais: '',
       files: [],
       activo: false,
       tipos_doc: [
@@ -57,6 +59,8 @@ class Crear_cliente extends Component {
       show_error_cell: false,
       show_error_tel: false,
       show_error_dir: false,
+      show_error_ciudad: false,
+      show_error_pais: false,
       cargando: false,
       searching: false,
       show_snackbar: false,
@@ -95,6 +99,8 @@ class Crear_cliente extends Component {
       show_error_cell: false,
       show_error_tel: false,
       show_error_dir: false,
+      show_error_ciudad: false,
+      show_error_pais: false,
     });
 
     if (!Number(this.state.id_usuario_aux))
@@ -106,7 +112,8 @@ class Crear_cliente extends Component {
     if (!Number(this.state.cell)) this.setState({show_error_cell: true});
     if (!Number(this.state.tel)) this.setState({show_error_tel: true});
     if (this.state.dir.length < 6) this.setState({show_error_dir: true});
-
+    if (this.state.ciudad.length == 0) this.setState({show_error_ciudad: true});
+    if (this.state.pais.length == 0) this.setState({show_error_pais: true});
     setTimeout(() => {
       const {
         show_error_doc,
@@ -116,6 +123,8 @@ class Crear_cliente extends Component {
         show_error_cell,
         show_error_tel,
         show_error_dir,
+        show_error_ciudad,
+        show_error_pais,
       } = this.state;
       if (
         !show_error_doc &&
@@ -124,7 +133,9 @@ class Crear_cliente extends Component {
         !show_error_email &&
         !show_error_cell &&
         !show_error_tel &&
-        !show_error_dir
+        !show_error_dir &&
+        !show_error_ciudad &&
+        !show_error_pais
       ) {
         this.setState({cargando: true});
         var formData = new FormData();
@@ -136,6 +147,8 @@ class Crear_cliente extends Component {
         formData.append('cellphone', this.state.cell);
         formData.append('phone', this.state.tel);
         formData.append('dir', this.state.dir);
+        formData.append('ciudad', this.state.ciudad);
+        formData.append('pais', this.state.pais);
         this.state.files.forEach((item, i) => {
           formData.append("upload[]", item);
         });
@@ -161,7 +174,9 @@ class Crear_cliente extends Component {
                 cargando: false,
                 cell:'',
                 tel:'',
-                dir:''
+                dir:'',
+                ciudad:'',
+                pais:''
               });
             } else {
               alert(response.message);
@@ -311,6 +326,32 @@ class Crear_cliente extends Component {
             {this.state.show_error_dir ? (
               <HelperText type="error" visible={this.state.show_error_dir}>
                 Debe ingresar una dirección válida
+              </HelperText>
+            ) : null}
+            <TextInput
+              mode="outlined"
+              label="Ciudad"
+              theme={{colors: {primary: 'red'}}}
+              style={styles.input}
+              value={this.state.ciudad}
+              onChangeText={text => this.setState({ciudad: text})}
+            />
+            {this.state.show_error_ciudad ? (
+              <HelperText type="error" visible={this.state.show_error_ciudad}>
+                Debe ingresar la ciudad del cliente
+              </HelperText>
+            ) : null}
+            <TextInput
+              mode="outlined"
+              label="País"
+              theme={{colors: {primary: 'red'}}}
+              style={styles.input}
+              value={this.state.pais}
+              onChangeText={text => this.setState({pais: text})}
+            />
+            {this.state.show_error_pais ? (
+              <HelperText type="error" visible={this.state.show_error_pais}>
+                Debe ingresar el país del cliente
               </HelperText>
             ) : null}
             <Divider />
