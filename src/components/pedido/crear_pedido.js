@@ -341,11 +341,12 @@ class Crear_pedido extends Component {
       });
   }
   currencyFormat(num) {
-    return '$' + num.toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+    return '$' + num.toFixed(0).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
   }
   dateFormat(date) {
     let temp = date.split('T');
-    return temp[0];
+    let temp2 = temp[0].split('-')
+    return temp2[2]+"/"+temp2[1]+"/"+temp2[0];
   }
   get_cartera_saldo(value) {
     this.setState({
@@ -1235,7 +1236,7 @@ class Crear_pedido extends Component {
                     <Text
                       style={{
                         textAlign: 'center',
-                        color: 'red',
+                        color: 'black',
                         marginTop: '2%',
                       }}>
                       {'Valor Compra: ' +
@@ -1244,7 +1245,7 @@ class Crear_pedido extends Component {
                     <Text
                       style={{
                         textAlign: 'center',
-                        color: 'red',
+                        color: 'black',
                         marginTop: '2%',
                       }}>
                       {'Cupo: ' + this.currencyFormat(this.state.saldo_aux)}

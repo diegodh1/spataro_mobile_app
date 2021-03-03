@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {View, StyleSheet} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
+import {useDispatch, useSelector} from 'react-redux';
 import {
   createDrawerNavigator,
   DrawerContentScrollView,
@@ -13,6 +14,7 @@ import Pedido from '../pedido';
 import Catalogo from '../catalogo';
 import Menu_perfil from './drawer_perfil';
 import Referencia from '../referencia';
+import Login from '../login';
 import {
   useTheme,
   Avatar,
@@ -22,10 +24,13 @@ import {
   Text,
   TouchableRipple,
   Switch,
+  Button,
 } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/AntDesign';
 import Animated from 'react-native-reanimated';
-import {useDispatch, useSelector} from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
+var Realm = require('realm');
+
 
 let tipo = 'ADMINISTRADOR';
 function get_perfil() {
@@ -35,7 +40,7 @@ function get_perfil() {
       tipo = 'VENDEDOR';
     } else {
       tipo = 'ADMINISTRADOR';
-      break
+      break;
     }
   }
 }
@@ -145,11 +150,37 @@ function MyDrawer() {
   );
 }
 
-export default function Home() {
-  get_perfil()
+export default function Home(props) {
+  const user = useSelector(state => state.reducer.user);
+  const navigation = props.navigation
+  get_perfil();
+  const salir = () => {
+    let realm = new Realm({
+      schema: [
+        {
+          name: 'UserApp',
+          properties: {
+            userID: { type: 'int', default: 0 },
+            username: 'string',
+            password: 'string',
+          },
+        },
+      ],
+    }); 
+    var userApp = realm.objects('UserApp');
+    realm.write(() => {
+      realm.delete(userApp);
+    });
+    navigation.navigate('inicio')
+  };
   return (
     <NavigationContainer>
       <MyDrawer />
+      <Button style={{textAlign: 'center'}} onPress={() => salir()}>
+        <Text style={{color:'red'}}>
+        Cerrar Sesión
+        </Text>
+      </Button>
     </NavigationContainer>
   );
 }

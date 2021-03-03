@@ -228,7 +228,7 @@ class Login extends Component {
         ) : (
           <Modal
             visible={this.state.cargando}
-            contentContainerStyle={{backgroundColor: '#9dcacd'}}>
+            contentContainerStyle={{backgroundColor: 'white'}}>
             <View style={{height: '100%'}}>
               <Image
                 style={styles.loader}

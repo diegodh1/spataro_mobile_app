@@ -103,27 +103,34 @@ class Editar_pedido extends Component {
     }
   }
   currencyFormat(num) {
-    return '$' + num.toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
+    return '$' + num.toFixed(0).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
   }
   formatDate(value) {
     let temp = value.split('');
     return (
+      temp[6] +
+      '' +
+      temp[7] +
+      '/' +
+      temp[4] +
+      '' +
+      temp[5] +
+      '/' +
       temp[0] +
       '' +
       temp[1] +
       '' +
       temp[2] +
       '' +
-      temp[3] +
-      '-' +
-      temp[4] +
-      '' +
-      temp[5] +
-      '-' +
-      temp[6] +
-      '' +
-      temp[7]
+      temp[3]
     );
+  }
+  dateFormatAux(value) {
+    let temp = value.split('-')
+    if(value == ""){
+      return ""
+    }
+    return temp[2]+"/"+temp[1]+"/"+temp[0];
   }
   render() {
     return (
@@ -160,22 +167,22 @@ class Editar_pedido extends Component {
           </View>
           <View style={{marginLeft: '5%'}}>
             <Title>Fecha de Despacho</Title>
-            <Paragraph style={{color: 'red'}}>
-              {this.state.fecha_despacho}
+            <Paragraph style={{color: 'green'}}>
+              {this.dateFormatAux(this.state.fecha_despacho)}
             </Paragraph>
             <Title>Observaciones</Title>
             <Paragraph>{this.state.observaciones}</Paragraph>
             <Title>Información del Cliente</Title>
-            <Paragraph>{'NIT: ' + this.state.cliente.NitTercero}</Paragraph>
+            <Paragraph>{'NIT: ' + (this.state.cliente.NitTercero == undefined? "": this.state.cliente.NitTercero)}</Paragraph>
             <Paragraph>
-              {'NOMBRE: ' + this.state.cliente.NombreTercero}
+              {'NOMBRE: ' + (this.state.cliente.NombreTercero == undefined? "": this.state.cliente.NombreTercero)}
             </Paragraph>
             <Title>Información del Punto de envío</Title>
             <Paragraph>
-              {'ID Sucursal: ' + this.state.punto_envio.IDSucursal}
+              {'ID Sucursal: ' + (this.state.punto_envio.IDSucursal == undefined? "": this.state.punto_envio.IDSucursal)}
             </Paragraph>
             <Paragraph>
-              {'Punto de Envío: ' + this.state.punto_envio.PuntoEnvio}
+              {'Punto de Envío: ' + (this.state.punto_envio.PuntoEnvio == undefined? "": this.state.punto_envio.PuntoEnvio)}
             </Paragraph>
             <Title style={{textAlign: 'center'}}>Detalle del Pedido</Title>
             <DataTable>
